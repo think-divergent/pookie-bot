@@ -15,7 +15,7 @@ async def on_message(message):
         return
 
     txt = message.content.lower()
-    for prompt, responses in SIMPLE_RESPONSES.items()
+    for prompt, responses in SIMPLE_RESPONSES.items():
         if txt.startswith(prompt):
             await message.channel.send(random.choice(responses))
             return
