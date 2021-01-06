@@ -20,11 +20,15 @@ SIMPLE_RESPONSES = {
     ],
     "sorry": [
         "Shhhh! Stop apologizing!\nhttps://gph.is/g/EGxWqla",
-        "Stop apologizing...I'm trying to take a nap...\nhttps://gph.is/g/EGxWqla"
+        "Stop apologizing... I'm trying to take a nap...\nhttps://gph.is/g/EGxWqla"
     ],
-    "I'm sorry": [
+    "i'm sorry": [
         "Shhhh! Stop apologizing!\nhttps://gph.is/g/EGxWqla",
-        "Stop apologizing...I'm trying to take a nap...\nhttps://gph.is/g/EGxWqla"
+        "Stop apologizing... I'm trying to take a nap...\nhttps://gph.is/g/EGxWqla"
+    ],
+    "i apologize": [
+        "Shhhh! Stop apologizing!\nhttps://gph.is/g/EGxWqla",
+        "Stop apologizing... I'm trying to take a nap...\nhttps://gph.is/g/EGxWqla"
     ]
 }
 
