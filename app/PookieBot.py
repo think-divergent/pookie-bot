@@ -20,5 +20,5 @@ def run_slack_client():
 
 if __name__ == "__main__":
     slack_thread = threading.Thread(target=run_slack_client)
-    # slack_thread.start()
+    slack_thread.start()
     run_discord_client()
