@@ -4,10 +4,13 @@ url = "https://pypi.org/simple"
 verify_ssl = true
 
 [dev-packages]
+pytest = "*"
+pytest-watch = "*"
 
 [packages]
 "discord.py" = "*"
 slack-bolt = "*"
+petname = "*"
 
 [requires]
 python_version = "3.8"
