@@ -1,9 +1,9 @@
 import random
 
 import discord
-import petname
 from common_responses import SIMPLE_RESPONSES
 import logging
+from petname import get_random_name
 
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.DEBUG)
@@ -79,7 +79,7 @@ async def make_groups():
     voice_channel_perm.connect = True
     voice_channel_perm.stream = True
     for idx, group in enumerate(groups):
-        group_name = f"team-{petname.Generate(3)}"
+        group_name = f"team-{get_random_name()}"
         txt_channel = await category.create_text_channel(group_name + "-text")
         voice_channel = await category.create_voice_channel(group_name + "-voice")
         for participant in group:
@@ -111,8 +111,11 @@ async def on_message(message):
         return
     txt = message.content.lower()
     if txt == "create_groups":
-        await make_groups()
+        if message.author.id != 209669511517962241:
+            return
         print("Creating Groups")
+        await make_groups()
+        print("Created Groups")
         return
     for prompt, responses in SIMPLE_RESPONSES.items():
         if txt.startswith(prompt):

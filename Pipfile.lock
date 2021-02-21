@@ -1,7 +1,7 @@
 {
     "_meta": {
         "hash": {
-            "sha256": "0190b76be1fe5ad1d8e81965ea333c47fe2101acee0f48e687011193b62488eb"
+            "sha256": "e1f8b76f42d7f3422bacc26af0a39a8f9fe159a58666d338093ced38a8a823a9"
         },
         "pipfile-spec": 6,
         "requires": {
@@ -140,13 +140,6 @@
             ],
             "markers": "python_version >= '3.6'",
             "version": "==5.1.0"
-        },
-        "petname": {
-            "hashes": [
-                "sha256:981c31ef772356a373640d1bb7c67c102e0159eda14578c67a1c99d5b34c9e4c"
-            ],
-            "index": "pypi",
-            "version": "==2.6"
         },
         "slack-bolt": {
             "hashes": [

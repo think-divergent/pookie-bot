@@ -10,7 +10,6 @@ pytest-watch = "*"
 [packages]
 "discord.py" = "*"
 slack-bolt = "*"
-petname = "*"
 
 [requires]
 python_version = "3.8"

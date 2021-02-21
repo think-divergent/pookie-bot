@@ -720,12 +720,8 @@ adverbs = [
 names = [
     "ox",
     "ant",
-    "ape",
-    "asp",
     "bat",
     "bee",
-    "boa",
-    "bug",
     "cat",
     "cod",
     "cow",
@@ -733,12 +729,9 @@ names = [
     "doe",
     "dog",
     "eel",
-    "eft",
-    "elf",
     "elk",
     "emu",
     "ewe",
-    "fly",
     "fox",
     "gar",
     "gnu",
@@ -784,9 +777,7 @@ names = [
     "foal",
     "fowl",
     "frog",
-    "gnat",
     "goat",
-    "grub",
     "gull",
     "hare",
     "hawk",
@@ -821,7 +812,6 @@ names = [
     "swan",
     "tahr",
     "teal",
-    "tick",
     "toad",
     "tuna",
     "wasp",
@@ -839,7 +829,6 @@ names = [
     "bunny",
     "burro",
     "camel",
-    "chimp",
     "civet",
     "cobra",
     "coral",
@@ -865,7 +854,6 @@ names = [
     "hyena",
     "koala",
     "krill",
-    "leech",
     "lemur",
     "liger",
     "llama",
@@ -892,7 +880,6 @@ names = [
     "skunk",
     "sloth",
     "snail",
-    "snake",
     "snipe",
     "squid",
     "stork",
@@ -901,7 +888,6 @@ names = [
     "tapir",
     "tetra",
     "tiger",
-    "troll",
     "trout",
     "viper",
     "wahoo",
@@ -941,7 +927,6 @@ names = [
     "hornet",
     "iguana",
     "impala",
-    "insect",
     "jackal",
     "jaguar",
     "jennet",
@@ -949,7 +934,6 @@ names = [
     "kodiak",
     "lizard",
     "locust",
-    "maggot",
     "magpie",
     "mammal",
     "mantis",
@@ -982,7 +966,6 @@ names = [
     "serval",
     "shiner",
     "shrimp",
-    "spider",
     "sponge",
     "tarpon",
     "thrush",
@@ -1180,10 +1163,4 @@ names = [
 
 
 def get_random_name():
-    return (
-        random.choice(adverbs)
-        + "-"
-        + random.choice(adjectives)
-        + "-"
-        + random.choice(names)
-    )
+    return random.choice(adjectives) + "-" + random.choice(names)
