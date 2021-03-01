@@ -32,4 +32,4 @@ class TestPookie(TestCase):
         self.assertEqual(res, [[1, 2, 3], [4, 5, 6], [7, 8, 9]])
         # 13 people group of 4, 4, 3 and 2
         res = group_participants(range(1, 14))
-        self.assertEqual(res, [[1, 2, 3, 4], [5, 6, 7, 8], [9, 10, 11], [12, 13]])
+        self.assertEqual(res, [[1, 2, 3, 4], [5, 6, 7], [9, 10, 11], [8, 12, 13]])

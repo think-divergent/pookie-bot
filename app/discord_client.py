@@ -1,4 +1,6 @@
+import datetime
 import random
+import hashlib
 
 import discord
 from common_responses import SIMPLE_RESPONSES
@@ -10,12 +12,20 @@ logger.setLevel(logging.DEBUG)
 
 client = discord.Client()
 
+POOKIE_USER_ID = 795343874049703986
 LANDING_PAD_CHANNEL_ID = 792039815327645736
 SIGNUP_MSG_ID = 812836894013915176
 ATOMIC_TEAM_CATEGORY_ID = 812829505013809182
 OLD_ATOMIC_TEAM_CATEGORY_ID = 812862635333648435
+THINK_DIVERGENT_GUILD = 742405250731999273
 EXISTING_PARTICIPANTS_SET = set()
 EXISTING_PARTICIPANTS = []
+
+# TODO save this to DB somewhere
+GUILD_2_COLLAB_SESSION_CAT_ID = {
+    806941792532168735: 810096286492655646,  # ASI
+    699390284416417842: 815777518699020318,  # SS
+}
 
 
 def group_participants(participants):
@@ -39,9 +49,10 @@ def group_participants(participants):
         # if we have more than one group
         if len(groups):
             if group_size == 4:
-                # move a person from a 4 people group
-                new_group = [groups[-1][3], new_group[0]]
+                # move 2 people from two 4 people group
+                new_group = [groups[-2][3], groups[-1][3], new_group[0]]
                 groups[-1] = groups[-1][:3]
+                groups[-2] = groups[-2][:3]
                 groups.append(new_group)
             else:
                 # add to an existing group
@@ -92,12 +103,73 @@ async def make_groups():
                 )
             except Exception as e:
                 logger.exception(e)
-        # mentions = " ".join([x.mention for x in group])
+        mentions = " ".join([x.mention for x in group])
         await txt_channel.send(
-            f"Welcome to {group_name}! This is your team for the next two weeks!"
-            " Get to know each other, share what you'd like to work on next and one concrete thing "
-            "that you can use help with!"
+            f"Welcome {mentions} to {group_name}! Your Atomic Team for the month! To get started: \n\n"
+            "1. Introduce yourself! What are you working on right now? What would you like help with?"
+            " What skills do you have that you can use to help others?\n\n"
+            "2. Make an appointment to meet some time during the first week - get to know each other, determine how you best communicate with everyone in your team, and how often you want to check in (be sure to check in at least once a week).\n\n"
+            "Need something to find a time for everyone? Try https://whenisgood.net/Create\n\n"
+            "Thank you for participating and please share any feedback and sugestions in the #feedback-and-suggestions channel!"
         )
+
+
+async def delete_on_demand_group(guild_id, channel):
+    cat_id = GUILD_2_COLLAB_SESSION_CAT_ID.get(guild_id)
+    if not cat_id:
+        return
+    channel_name = channel.name
+    if not channel_name.startswith("session-") or not channel_name.endswith("-text"):
+        return
+    session_prefix = channel_name[:-5]
+    category = client.get_channel(cat_id)
+    for c in category.channels:
+        if c.name == session_prefix + "-voice":
+            await c.delete()
+            break
+    await channel.delete()
+
+
+async def make_on_demand_group(guild_id, members):
+    if not members:
+        return
+    txt_channel_perm = discord.PermissionOverwrite()
+    txt_channel_perm.send_messages = True
+    txt_channel_perm.read_messages = True
+    txt_channel_perm.add_reactions = True
+    voice_channel_perm = discord.PermissionOverwrite()
+    voice_channel_perm.view_channel = True
+    voice_channel_perm.speak = True
+    voice_channel_perm.connect = True
+    voice_channel_perm.stream = True
+    random_name = get_random_name()
+    group_name = f"session-{random_name}"
+    cat_id = GUILD_2_COLLAB_SESSION_CAT_ID.get(guild_id)
+    if not cat_id:
+        return
+    category = client.get_channel(cat_id)
+    txt_channel = await category.create_text_channel(group_name + "-text")
+    voice_channel = await category.create_voice_channel(group_name + "-voice")
+    for member in members:
+        if member.id == POOKIE_USER_ID:
+            continue
+        try:
+            await txt_channel.set_permissions(member, overwrite=txt_channel_perm)
+            await voice_channel.set_permissions(member, overwrite=voice_channel_perm)
+        except Exception as e:
+            logger.exception(e)
+    mentions = " ".join([x.mention for x in members if x.id != POOKIE_USER_ID])
+    start_time = round(datetime.datetime.utcnow().timestamp())
+    duration = 45
+    session_id = hashlib.md5(f"discord-{guild_id}".encode("ascii")).hexdigest()
+    await txt_channel.send(
+        f"Thank you {mentions} for joining session {random_name}!\n\n - Say hi to each other. \n"
+        " - Share your goals for the next 45 minutes.\n"
+        " - Celebrate your wins together!\n\n"
+        f'When you are done. Type "{client.user.mention} end session" to delete the session here!\n\n'
+        "Here's the timer for this session. You can scan the QR Code to open it on your phone.\n"
+        f"https://thinkdivergent.io/join-coworking/{session_id}-{start_time}-{duration}/\n"
+    )
 
 
 @client.event
@@ -110,6 +182,15 @@ async def on_message(message):
     if message.author == client.user:
         return
     txt = message.content.lower()
+    # create focus sessions
+    if message.content.startswith("<@!795343874049703986> create session"):
+        await make_on_demand_group(message.guild.id, message.mentions)
+        return
+    if message.content.startswith("<@!795343874049703986> end session"):
+        await delete_on_demand_group(message.guild.id, message.channel)
+        return
+    if message.guild.id != THINK_DIVERGENT_GUILD:
+        return
     if txt == "create_groups":
         if message.author.id != 209669511517962241:
             return
