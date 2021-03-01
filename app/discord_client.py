@@ -160,7 +160,7 @@ async def make_on_demand_group(guild_id, members):
         except Exception as e:
             logger.exception(e)
     mentions = " ".join([x.mention for x in members if x.id != POOKIE_USER_ID])
-    start_time = round(datetime.datetime.utcnow().timestamp())
+    start_time = round(datetime.datetime.now().timestamp())
     duration = 45
     session_id = hashlib.md5(f"discord-{guild_id}".encode("ascii")).hexdigest()
     await txt_channel.send(
