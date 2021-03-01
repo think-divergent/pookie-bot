@@ -25,6 +25,7 @@ EXISTING_PARTICIPANTS = []
 GUILD_2_COLLAB_SESSION_CAT_ID = {
     806941792532168735: 810096286492655646,  # ASI
     699390284416417842: 815777518699020318,  # SS
+    742405250731999273: 816071249222041600,  # TD
 }
 
 
@@ -184,6 +185,9 @@ async def on_message(message):
     txt = message.content.lower()
     # create focus sessions
     if message.content.startswith("<@!795343874049703986> create session"):
+        await make_on_demand_group(message.guild.id, message.mentions)
+        return
+    if message.content.startswith("<@!795343874049703986> create focus session"):
         await make_on_demand_group(message.guild.id, message.mentions)
         return
     if message.content.startswith("<@!795343874049703986> end session"):
