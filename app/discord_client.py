@@ -137,10 +137,12 @@ async def make_on_demand_group(guild, members):
     guild_id = guild.id
     # create permision overwide for text and voice channels using default permissions
     txt_channel_perm = discord.PermissionOverwrite(
-        **{key: value for key, value in discord.Permissions.text() if value}
+        view_channel=True,
+        **{key: value for key, value in discord.Permissions.text() if value},
     )
     voice_channel_perm = discord.PermissionOverwrite(
-        **{key: value for key, value in discord.Permissions.voice() if value}
+        view_channel=True,
+        **{key: value for key, value in discord.Permissions.voice() if value},
     )
     random_name = get_random_name()
     group_name = f"session-{random_name}"
