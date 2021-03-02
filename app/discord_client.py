@@ -131,26 +131,32 @@ async def delete_on_demand_group(guild_id, channel):
     await channel.delete()
 
 
-async def make_on_demand_group(guild_id, members):
+async def make_on_demand_group(guild, members):
     if not members:
         return
-    txt_channel_perm = discord.PermissionOverwrite()
-    txt_channel_perm.send_messages = True
-    txt_channel_perm.read_messages = True
-    txt_channel_perm.add_reactions = True
-    voice_channel_perm = discord.PermissionOverwrite()
-    voice_channel_perm.view_channel = True
-    voice_channel_perm.speak = True
-    voice_channel_perm.connect = True
-    voice_channel_perm.stream = True
+    guild_id = guild.id
+    # create permision overwide for text and voice channels using default permissions
+    txt_channel_perm = discord.PermissionOverwrite(
+        **{key: value for key, value in discord.Permissions.text() if value}
+    )
+    voice_channel_perm = discord.PermissionOverwrite(
+        **{key: value for key, value in discord.Permissions.voice() if value}
+    )
     random_name = get_random_name()
     group_name = f"session-{random_name}"
     cat_id = GUILD_2_COLLAB_SESSION_CAT_ID.get(guild_id)
     if not cat_id:
         return
     category = client.get_channel(cat_id)
-    txt_channel = await category.create_text_channel(group_name + "-text")
-    voice_channel = await category.create_voice_channel(group_name + "-voice")
+    private_channel_perm = {
+        guild.default_role: discord.PermissionOverwrite(read_messages=False),
+    }
+    txt_channel = await category.create_text_channel(
+        group_name + "-text", overwrites=private_channel_perm
+    )
+    voice_channel = await category.create_voice_channel(
+        group_name + "-voice", overwrites=private_channel_perm
+    )
     for member in members:
         if member.id == POOKIE_USER_ID:
             continue
@@ -185,10 +191,10 @@ async def on_message(message):
     txt = message.content.lower()
     # create focus sessions
     if message.content.startswith("<@!795343874049703986> create session"):
-        await make_on_demand_group(message.guild.id, message.mentions)
+        await make_on_demand_group(message.guild, message.mentions)
         return
     if message.content.startswith("<@!795343874049703986> create focus session"):
-        await make_on_demand_group(message.guild.id, message.mentions)
+        await make_on_demand_group(message.guild, message.mentions)
         return
     if message.content.startswith("<@!795343874049703986> end session"):
         await delete_on_demand_group(message.guild.id, message.channel)
