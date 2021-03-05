@@ -1,3 +1,4 @@
+import os
 import datetime
 import random
 import hashlib
@@ -12,7 +13,7 @@ logger.setLevel(logging.DEBUG)
 
 client = discord.Client()
 
-POOKIE_USER_ID = 795343874049703986
+POOKIE_USER_ID = os.environ.get("POOKIE_USER_ID", 795343874049703986)
 LANDING_PAD_CHANNEL_ID = 792039815327645736
 SIGNUP_MSG_ID = 812836894013915176
 ATOMIC_TEAM_CATEGORY_ID = 812829505013809182
@@ -192,13 +193,13 @@ async def on_message(message):
         return
     txt = message.content.lower()
     # create focus sessions
-    if message.content.startswith("<@!795343874049703986> create session"):
+    if message.content.startswith(f"<@!{POOKIE_USER_ID}> create session"):
         await make_on_demand_group(message.guild, message.mentions)
         return
-    if message.content.startswith("<@!795343874049703986> create focus session"):
+    if message.content.startswith(f"<@!{POOKIE_USER_ID}> create focus session"):
         await make_on_demand_group(message.guild, message.mentions)
         return
-    if message.content.startswith("<@!795343874049703986> end session"):
+    if message.content.startswith(f"<@!{POOKIE_USER_ID}> end session"):
         await delete_on_demand_group(message.guild.id, message.channel)
         return
     if message.guild.id != THINK_DIVERGENT_GUILD:
