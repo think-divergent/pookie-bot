@@ -1,9 +1,12 @@
+import asyncio
 import os
 import datetime
 import random
 import hashlib
 
 import discord
+from discord.ext import commands
+from discord_slash import SlashCommand, SlashContext
 from common_responses import SIMPLE_RESPONSES
 import logging
 from petname import get_random_name
@@ -11,8 +14,11 @@ from petname import get_random_name
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.DEBUG)
 
-client = discord.Client()
+intents = discord.Intents.default()
+client = commands.Bot(command_prefix="", intents=intents)
+slash = SlashCommand(client, sync_commands=True)
 
+EMOJI_CHECK_MARK = "✅"
 POOKIE_USER_ID = os.environ.get("POOKIE_USER_ID", 795343874049703986)
 LANDING_PAD_CHANNEL_ID = 792039815327645736
 SIGNUP_MSG_ID = 812836894013915176
@@ -71,7 +77,7 @@ async def make_groups():
     msg = await channel.fetch_message(SIGNUP_MSG_ID)
     reaction = None
     for rec in msg.reactions:
-        if rec.emoji == "✅":
+        if rec.emoji == EMOJI_CHECK_MARK:
             reaction = rec
             break
     if not reaction:
@@ -189,9 +195,39 @@ async def on_ready():
 
 @client.event
 async def on_message(message):
-    if message.author == client.user:
-        return
     txt = message.content.lower()
+    if message.author == client.user:
+        if txt.startswith("a focus session is starting"):
+            await message.add_reaction(EMOJI_CHECK_MARK)
+            session_users = {}
+
+            def check(reaction, user):
+                if user == client.user:
+                    return
+                if str(reaction.emoji) == EMOJI_CHECK_MARK:
+                    session_users[user.id] = user
+                    if len(session_users) == 4:
+                        return True
+                return False
+
+            try:
+                await client.wait_for("reaction_add", timeout=10.0, check=check)
+            except asyncio.TimeoutError:
+                if len(session_users):
+                    await message.channel.send(
+                        f"{len(session_users)} people just joined a focus session!\n\n"
+                        'Start your own with by typing "/start-session" into the chat!'
+                    )
+                    await make_on_demand_group(
+                        message.guild, list(session_users.values())
+                    )
+                await message.delete()
+            else:
+                await message.delete()
+        return
+    if txt.startswith("</start-session"):
+        await message.delete()
+        return
     # create focus sessions
     if message.content.startswith(f"<@!{POOKIE_USER_ID}> create session"):
         await make_on_demand_group(message.guild, message.mentions)
@@ -215,3 +251,11 @@ async def on_message(message):
         if txt.startswith(prompt):
             await message.channel.send(random.choice(responses))
             return
+
+
+@slash.slash(name="start-session", description="Start a focus session in 5 minutes")
+async def _test(ctx: SlashContext):
+    await ctx.respond()
+    await ctx.send(
+        content=f"A focus session is starting in 5 minutes! React with {EMOJI_CHECK_MARK} to join!",
+    )

@@ -10,6 +10,7 @@ pytest-watch = "*"
 [packages]
 "discord.py" = "*"
 slack-bolt = "*"
+discord-py-slash-command = "*"
 
 [requires]
 python_version = "3.8"
