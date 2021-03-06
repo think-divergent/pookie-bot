@@ -222,6 +222,14 @@ async def on_message(message):
                     )
                 await message.delete()
             else:
+                if len(session_users) > 1:
+                    await message.channel.send(
+                        f"{len(session_users)} people just joined a focus session!\n\n"
+                        'Start your own with by typing "/start-session" into the chat!'
+                    )
+                    await make_on_demand_group(
+                        message.guild, list(session_users.values())
+                    )
                 await message.delete()
         return
     if txt.startswith("</start-session"):
