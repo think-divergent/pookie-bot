@@ -138,7 +138,7 @@ async def delete_on_demand_group(guild_id, channel):
     await channel.delete()
 
 
-async def make_on_demand_group(guild, members, duration=45):
+async def make_on_demand_group(guild, members, duration=30):
     if not members:
         return
     guild_id = guild.id
@@ -179,7 +179,7 @@ async def make_on_demand_group(guild, members, duration=45):
     session_id = hashlib.md5(f"discord-{guild_id}".encode("ascii")).hexdigest()
     await txt_channel.send(
         f"Thank you {mentions} for joining session {random_name}!\n\n - Say hi to each other. \n"
-        " - Share your goals for the next {duration} minutes.\n"
+        f" - Share your goals for the next {duration} minutes.\n"
         " - Celebrate your wins together!\n\n"
         f'When you are done. Type "{client.user.mention} end session" to delete the session here!\n\n'
         "Here's the timer for this session. You can scan the QR Code to open it on your phone.\n"
