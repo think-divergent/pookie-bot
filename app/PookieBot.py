@@ -16,7 +16,7 @@ def run_discord_client():
 
 def run_slack_client():
     app_token = os.environ.get("SLACK_APP_TOKEN")
-    if False and app_token:
+    if app_token:
         from slack_bolt.adapter.socket_mode import SocketModeHandler
 
         SocketModeHandler(slack_app, app_token).start()
