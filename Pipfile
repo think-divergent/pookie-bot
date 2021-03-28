@@ -11,6 +11,9 @@ pytest-watch = "*"
 "discord.py" = "*"
 slack-bolt = "*"
 discord-py-slash-command = "*"
+sqlalchemy = "*"
+psycopg2-binary = "*"
+
 
 [requires]
 python_version = "3.8"

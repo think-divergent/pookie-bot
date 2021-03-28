@@ -15,10 +15,20 @@ def run_discord_client():
 
 
 def run_slack_client():
-    slack_app.start(port=3300)
+    app_token = os.environ.get("SLACK_APP_TOKEN")
+    if False and app_token:
+        from slack_bolt.adapter.socket_mode import SocketModeHandler
+
+        SocketModeHandler(slack_app, app_token).start()
+    else:
+        slack_app.start(port=3300)
 
 
 if __name__ == "__main__":
-    slack_thread = threading.Thread(target=run_slack_client)
-    slack_thread.start()
-    run_discord_client()
+    if os.environ.get("SLACK_ONLY"):
+        run_slack_client()
+    elif os.environ.get("DISCORD_ONLY"):
+        run_discord_client()
+    else:
+        slack_thread = threading.Thread(target=run_slack_client)
+        slack_thread.start()
