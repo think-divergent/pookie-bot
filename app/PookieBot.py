@@ -32,3 +32,4 @@ if __name__ == "__main__":
     else:
         slack_thread = threading.Thread(target=run_slack_client)
         slack_thread.start()
+        run_discord_client()
