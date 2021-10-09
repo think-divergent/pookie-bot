@@ -4,7 +4,7 @@ from discord_client import group_participants, group_members_by_timeslot
 
 
 class TestPookie(TestCase):
-    @patch("random.shuffle")
+    @patch("discord_client._daily_random_shuffle")
     def test_group_participants(self, shuffle):
         # 1 person... one group.. can't do better
         res = group_participants([1])
@@ -26,7 +26,7 @@ class TestPookie(TestCase):
         self.assertEqual(res, [[1, 2, 3], [4, 5, 6, 7]])
         # 8 people group of 3, 3 and 2
         res = group_participants([1, 2, 3, 4, 5, 6, 7, 8])
-        self.assertEqual(res, [[1, 2, 3], [4, 5, 6], [7, 8]])
+        self.assertEqual(res, [[1, 2, 3, 4], [5, 6, 7, 8]])
         # 9 people group of 3, 3 and 3
         res = group_participants([1, 2, 3, 4, 5, 6, 7, 8, 9])
         self.assertEqual(res, [[1, 2, 3], [4, 5, 6], [7, 8, 9]])
@@ -34,7 +34,7 @@ class TestPookie(TestCase):
         res = group_participants(range(1, 14))
         self.assertEqual(res, [[1, 2, 3, 4], [5, 6, 7], [9, 10, 11], [8, 12, 13]])
 
-    @patch("random.shuffle")
+    @patch("discord_client._daily_random_shuffle")
     def test_group_members_by_timeslot(self, shuffle):
         groups_to_member_ids = {
             0: {"AD", "CU", "SE", "MA"},

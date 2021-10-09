@@ -91,7 +91,7 @@ GROUP_IDX_TO_MEET_TIME = {
 meet_time = GROUP_IDX_TO_MEET_TIME[0]
 
 
-def _get_daily_random_instance():
+def _daily_random_shuffle():
     rnd = random.Random()
     rnd.seed(int(datetime.datetime.now().timestamp() // (3600 * 24)))
     return rnd
@@ -100,8 +100,10 @@ def _get_daily_random_instance():
 def group_participants(participants):
     # random participants
     participants = [x for x in participants]
-    _get_daily_random_instance().shuffle(participants)
+    _daily_random_shuffle(participants)
     if len(participants) > 12:
+        group_size = 4
+    elif len(participants) == 8:
         group_size = 4
     elif len(participants) > 6:
         group_size = 3
@@ -167,7 +169,7 @@ async def make_groups(request_channel=None, dry_run=False):
         if request_channel:
             output = "\n".join(
                 [
-                    f"{gid}: " + ",".join([m.name for m in g])
+                    f"Team {gid+1}: " + ", ".join([m.display_name for m in g])
                     for gid, g in groups.items()
                 ]
             )
@@ -233,6 +235,9 @@ async def make_groups(request_channel=None, dry_run=False):
             msg_body = f"2. Looks like the best time for all of you to get together is weekly on {meet_time_str} US Eastern Time. You can add these times to your google calendar through this link: {calendar_url}. If this time doesn't work for you, no worries, feel free to still share updates through text with each other! \n\n"
         msg_footer = "Thank you for participating and please share any feedback and sugestions in the #feedback-and-suggestions channel!"
         await txt_channel.send(f"{msg_header}{msg_body}{msg_footer}", **kwargs)
+        await txt_channel.send(
+            "By the way, remember to enable notification for this channel so you won't miss any reminders here! https://imgur.com/a/au6fHwC"
+        )
 
 
 async def delete_on_demand_group(guild_id, channel):
@@ -404,7 +409,7 @@ def group_members_by_timeslot(
     viable_groups = [
         x for x in group_member_assignments.keys() if len(group_member_assignments[x])
     ]
-    _get_daily_random_instance().shuffle(members_to_assign)
+    _daily_random_shuffle(members_to_assign)
     last_added = None
     for member_id in members_to_assign:
         # put into groups with lowest member count
