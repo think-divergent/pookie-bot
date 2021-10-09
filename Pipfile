@@ -13,7 +13,7 @@ slack-bolt = "*"
 discord-py-slash-command = "*"
 sqlalchemy = "*"
 psycopg2-binary = "*"
-
+arrow = "*"
 
 [requires]
 python_version = "3.8"

@@ -20,5 +20,12 @@ docker build . -t ${IMAGE_NAME}:${TAG_NAME}
 docker tag ${IMAGE_NAME}:${TAG_NAME} ${GALLERY}/${PROJECT_ID}/${IMAGE_NAME}:${TAG_NAME}
 docker push ${GALLERY}/${PROJECT_ID}/${IMAGE_NAME}:${TAG_NAME}
 popd
-helm upgrade --install ${RELEASE_NAME} ./deploy/${APP_NAME} --debug \
-    --set image.repository=${GALLERY}/${PROJECT_ID}/${IMAGE_NAME},image.tag=${TAG_NAME},timestamp=`date +t%s` --force --wait $1
+if command -v helm3 &> /dev/null
+then
+    HELM=helm3
+else
+    HELM=helm
+fi
+echo "using $HELM"
+$HELM upgrade --install ${RELEASE_NAME} ./deploy/${APP_NAME} --debug \
+    --set image.repository=${GALLERY}/${PROJECT_ID}/${IMAGE_NAME},image.tag=${TAG_NAME},timestamp=`date +t%s` --wait $1
