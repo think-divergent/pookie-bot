@@ -204,8 +204,8 @@ async def make_groups(request_channel=None, dry_run=False):
         mentions = " ".join([x.mention for x in group])
         msg_header = (
             f"Welcome {mentions} to {group_name}! Your Atomic Team for the month! To get started: \n\n"
-            "1. Introduce yourself! What are you working on right now? What would you like help with?"
-            " What skills do you have that you can use to help others?\n\n"
+            "1. Introduce yourself! What are you working on these days? What would you like some help with?"
+            " What do you enjoy to helping others with?\n\n"
         )
         msg_body = (
             "2. Make an appointment to meet some time during the first week - get to know each other, determine how you best communicate with everyone in your team, and how often you want to check in (be sure to check in at least once a week).\n\n"
