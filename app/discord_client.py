@@ -91,10 +91,10 @@ GROUP_IDX_TO_MEET_TIME = {
 meet_time = GROUP_IDX_TO_MEET_TIME[0]
 
 
-def _daily_random_shuffle():
+def _daily_random_shuffle(items):
     rnd = random.Random()
     rnd.seed(int(datetime.datetime.now().timestamp() // (3600 * 24)))
-    return rnd
+    rnd.shuffle(items)
 
 
 def group_participants(participants):
@@ -229,8 +229,8 @@ async def make_groups(request_channel=None, dry_run=False):
             end_time += datetime.timedelta(days=7 * 5)
             event_count = 6
             meet_time_str = start_time.format("dddd hh:mm a")
-            start_time_str = start_time.format("YYYYMMDDThhmmss")
-            end_time_str = event_end_time.format("YYYYMMDDThhmmss")
+            start_time_str = start_time.format("YYYYMMDDTHHmmss")
+            end_time_str = event_end_time.format("YYYYMMDDTHHmmss")
             calendar_url = f"https://calendar.google.com/calendar/u/0/r/eventedit?dates={start_time_str}/{end_time_str}&text=Think%20Divergent%20Atomic%20Team&location=Discord%20Voice%20Channel&recur=RRULE:FREQ%3DWEEKLY;COUNT%3D{event_count}&ctz=America%2FNew_York"
             msg_body = f"2. Looks like the best time for all of you to get together is weekly on {meet_time_str} US Eastern Time. You can add these times to your google calendar through this link: {calendar_url}. If this time doesn't work for you, no worries, feel free to still share updates through text with each other! \n\n"
         msg_footer = "Thank you for participating and please share any feedback and sugestions in the #feedback-and-suggestions channel!"
