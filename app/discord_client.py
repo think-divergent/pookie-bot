@@ -47,7 +47,7 @@ EXISTING_PARTICIPANTS = []
 GUILD_2_COLLAB_SESSION_CAT_ID = {
     806941792532168735: 810096286492655646,  # ASI
     699390284416417842: 815777518699020318,  # SS
-    742405250731999273: 816071249222041600,  # TD
+    742405250731999273: 897800785423917056,  # TD
 }
 
 REACTION_TO_IDX = {
@@ -462,9 +462,9 @@ def group_members_by_timeslot(
 @client.event
 async def on_message(message):
     txt = message.content.lower()
-    print(txt)
     if message.author == client.user:
         if txt.startswith("a focus session is starting"):
+            print("new session starting")
             await message.add_reaction(EMOJI_CHECK_MARK)
             session_users = {}
 
