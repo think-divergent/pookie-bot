@@ -473,7 +473,7 @@ async def on_message(message):
                     return
                 if str(reaction.emoji) == EMOJI_CHECK_MARK:
                     session_users[user.id] = user
-                    if len(session_users) == 4:
+                    if len(session_users) == 2:
                         return True
                 return False
 
