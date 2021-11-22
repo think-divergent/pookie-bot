@@ -210,8 +210,8 @@ async def make_groups(request_channel=None, dry_run=False):
             " What do you enjoy to helping others with?\n\n"
         )
         msg_body = (
-            "2. Make an appointment to meet some time during the first week - get to know each other, determine how you best communicate with everyone in your team, and how often you want to check in (be sure to check in at least once a week).\n\n"
-            "Need something to find a time for everyone? Try https://whenisgood.net/Create\n\n"
+            "2. Since you haven't picked your perferred weekly meet time (https://discord.com/channels/742405250731999273/811024435330678784/871734658931511367), make an appointment to meet some time during the first week - get to know each other, determine how you best communicate with everyone in your team, and how often you want to check in (be sure to check in at least once a week).\n\n"
+            "Need something to find a time for everyone? Pick a some times that work the best for you here! https://whenisgood.net/4a7nkn5/results/a9gkcir\n\n"
         )
         kwargs = {}
         if meet_time:
