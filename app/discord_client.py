@@ -76,16 +76,10 @@ GROUP_IDX_TO_MEET_TIME = {
         "minute": 30,
     },
     3: {
-        "date": 7,
-        "hour": 7,
+        "date": 2,
+        "hour": 11,
         "minute": 30,
     },
-    4: {
-        "date": 7,
-        "hour": 13,
-        "minute": 0,
-    },
-    5: {"date": 7, "hour": 16, "minute": 0},
 }
 
 meet_time = GROUP_IDX_TO_MEET_TIME[0]
@@ -157,19 +151,26 @@ async def make_groups(request_channel=None, dry_run=False):
     for rec in reactions:
         if rec.emoji in REACTION_TO_IDX:
             groups_to_members[REACTION_TO_IDX[rec.emoji]] = [
-                m for m in await rec.users().flatten() if m.id != STEVE_ID
+                m
+                for m in await rec.users().flatten()
+                # if m.id != STEVE_ID
             ]
     groups_to_member_ids = {}
     for group, members in groups_to_members.items():
         groups_to_member_ids[group] = set([x.id for x in members])
         member_id_to_members.update({m.id: m for m in members})
-    all_members = [m for m in member_id_to_members.values() if m.id != STEVE_ID]
+    all_members = [
+        m
+        for m in member_id_to_members.values()
+        # if m.id != STEVE_ID
+    ]
     groups = group_members_by_timeslot(all_members, groups_to_member_ids)
     if dry_run:
         if request_channel:
             output = "\n".join(
                 [
-                    f"Team {gid+1}: " + ", ".join([m.display_name for m in g])
+                    f"Team {gid+1} ({GROUP_IDX_TO_MEET_TIME.get(gid, 'unknown')}) : "
+                    + ", ".join([m.display_name for m in g])
                     for gid, g in groups.items()
                 ]
             )
