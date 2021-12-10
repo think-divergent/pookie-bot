@@ -1,3 +1,4 @@
+import requests
 import asyncio
 import arrow
 from collections import defaultdict
@@ -21,6 +22,7 @@ intents = discord.Intents.default()
 client = commands.Bot(command_prefix="", intents=intents)
 slash = SlashCommand(client)
 
+COWORKING_SERVER_URL = os.environ.get("COWORKING_SERVER_URL", "http://localhost:5000")
 EMOJI_CHECK_MARK = "✅"
 POOKIE_USER_ID = os.environ.get("POOKIE_USER_ID", 795343874049703986)
 LANDING_PAD_CHANNEL_ID = 792039815327645736
@@ -257,6 +259,13 @@ async def delete_on_demand_group(guild_id, channel):
     await channel.delete()
 
 
+def get_new_session_link():
+    res = requests.post(f"{COWORKING_SERVER_URL}/internal/start-coworking-session/")
+    if not res.ok:
+        return None
+    return res.json().get("url", None)
+
+
 async def make_on_demand_group(guild, members, duration=30):
     if not members:
         return
@@ -296,13 +305,19 @@ async def make_on_demand_group(guild, members, duration=30):
     mentions = " ".join([x.mention for x in members if x.id != POOKIE_USER_ID])
     start_time = round(datetime.datetime.now().timestamp())
     session_id = hashlib.md5(f"discord-{guild_id}".encode("ascii")).hexdigest()
+    # genreate a fallback url
+    url = f"https://thinkdivergent.io/join-coworking/{session_id}-{start_time}-{duration}/\n"
+    new_session_link = get_new_session_link()
+    # if we can get a new session link use that session link
+    if new_session_link:
+        url = f"https://thinkdivergent.com{new_session_link}"
     await txt_channel.send(
         f"Thank you {mentions} for joining session {random_name}!\n\n - Say hi to each other. \n"
         f" - Share your goals for the next {duration} minutes.\n"
         " - Celebrate your wins together!\n\n"
         f'When you are done. Type "{client.user.mention} end session" to delete the session here!\n\n'
         "Here's the timer for this session. You can scan the QR Code to open it on your phone.\n"
-        f"https://thinkdivergent.io/join-coworking/{session_id}-{start_time}-{duration}/\n"
+        f"{url}"
     )
 
 
