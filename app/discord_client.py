@@ -19,6 +19,9 @@ logger = logging.getLogger(__name__)
 logger.setLevel(logging.DEBUG)
 
 intents = discord.Intents.default()
+intents.members = True
+intents.messages = True
+intents.presences = True
 client = commands.Bot(command_prefix="", intents=intents)
 slash = SlashCommand(client)
 
@@ -52,6 +55,10 @@ GUILD_2_COLLAB_SESSION_CAT_ID = {
     742405250731999273: 897800785423917056,  # TD
 }
 
+GUILD_2_ONBOARDING_CAT_ID = {
+    699390284416417842: 919027765561393165,  # SS
+}
+
 REACTION_TO_IDX = {
     "1️⃣": 0,
     "2️⃣": 1,
@@ -83,8 +90,6 @@ GROUP_IDX_TO_MEET_TIME = {
         "minute": 30,
     },
 }
-
-meet_time = GROUP_IDX_TO_MEET_TIME[0]
 
 
 def _daily_random_shuffle(items):
@@ -210,11 +215,11 @@ async def make_groups(request_channel=None, dry_run=False):
         msg_header = (
             f"Welcome {mentions} to {group_name}! Your Atomic Team for the month! To get started: \n\n"
             "1. Introduce yourself! What are you working on these days? What would you like some help with?"
-            " What do you enjoy to helping others with?\n\n"
+            " What do you enjoy helping others with?\n\n"
         )
         msg_body = (
             "2. Since you haven't picked your perferred weekly meet time (https://discord.com/channels/742405250731999273/811024435330678784/871734658931511367), make an appointment to meet some time during the first week - get to know each other, determine how you best communicate with everyone in your team, and how often you want to check in (be sure to check in at least once a week).\n\n"
-            "Need something to find a time for everyone? Pick a some times that work the best for you here! https://whenisgood.net/4a7nkn5/results/a9gkcir\n\n"
+            "Need something to find a time for everyone? Pick some times that work the best for you here! https://whenisgood.net/4a7nkn5/results/a9gkcir\n\n"
         )
         kwargs = {}
         if meet_time:
@@ -236,7 +241,7 @@ async def make_groups(request_channel=None, dry_run=False):
             end_time_str = event_end_time.format("YYYYMMDDTHHmmss")
             calendar_url = f"https://calendar.google.com/calendar/u/0/r/eventedit?dates={start_time_str}/{end_time_str}&text=Think%20Divergent%20Atomic%20Team&location=Discord%20Voice%20Channel&recur=RRULE:FREQ%3DWEEKLY;COUNT%3D{event_count}&ctz=America%2FNew_York"
             msg_body = f"2. Looks like the best time for all of you to get together is weekly on {meet_time_str} US Eastern Time. You can add these times to your google calendar through this link: {calendar_url}. If this time doesn't work for you, no worries, feel free to still share updates through text with each other! \n\n"
-        msg_footer = "Thank you for participating and please share any feedback and sugestions in the #feedback-and-suggestions channel!"
+        msg_footer = "Thank you for participating and please share any feedback and suggestions in the #feedback-and-suggestions channel!"
         await txt_channel.send(f"{msg_header}{msg_body}{msg_footer}", **kwargs)
         await txt_channel.send(
             "By the way, remember to enable notification for this channel so you won't miss any reminders here! https://imgur.com/a/au6fHwC"
@@ -321,9 +326,58 @@ async def make_on_demand_group(guild, members, duration=30):
     )
 
 
+async def make_onboarding_group(guild, members):
+    guild_id = guild.id
+    # create permision overwide for text and voice channels using default permissions
+    txt_channel_perm = discord.PermissionOverwrite(
+        view_channel=True,
+        **{key: value for key, value in discord.Permissions.text() if value},
+    )
+    random_name = get_random_name()
+    group_name = f"{members[0]}-onboarding-group-{random_name}"
+    cat_id = GUILD_2_ONBOARDING_CAT_ID.get(guild_id)
+    if not cat_id:
+        return
+    category = client.get_channel(cat_id)
+    private_channel_perm = {
+        guild.default_role: discord.PermissionOverwrite(read_messages=False),
+    }
+    txt_channel = await category.create_text_channel(
+        group_name, overwrites=private_channel_perm
+    )
+    for member in members:
+        try:
+            await txt_channel.set_permissions(member, overwrite=txt_channel_perm)
+        except Exception as e:
+            logger.exception(e)
+    await txt_channel.send(
+        f"Hey {members[0].mention}, thanks for joining us! We’re so happy to have you as part of our community.\n\n"
+        f"To help you find your way around and navigate our cultivated chaos, please meet your onboarding buddy {members[1].mention}. Go ahead and ask them any questions you might have about Think Divergent, what we have going on, or anything else that’s on your mind. \n\n"
+        "Feeling adventurous? Here's an onboarding challenge for you:\n\n"
+        "Find the person who's talked about crypto the most on this server and figure out their favorite coin right now!\n\n"
+        "Feel free to team up with your buddy! Good luck and have fun! :orange_heart:"
+    )
+
+
 @client.event
 async def on_ready():
-    print("We have logged in as {0.user}".format(client))
+    print("we have logged in as {0.user}".format(client))
+
+
+@client.event
+async def on_member_join(member):
+    roles = member.guild.roles
+    onboarding_buddy_roles = [r for r in roles if r.name == "Onboarding Buddy"]
+    if not onboarding_buddy_roles:
+        return
+    onboarding_buddy_role = onboarding_buddy_roles[0]
+    buddies = onboarding_buddy_role.members
+    if not buddies:
+        return
+    online_buddies = [b for b in buddies if b.status == discord.Status.online]
+    pool = online_buddies if online_buddies else buddies
+    buddy = random.choice(pool)
+    await make_onboarding_group(member.guild, [member, buddy])
 
 
 def group_members_by_timeslot(
@@ -562,6 +616,7 @@ async def on_message(message):
 
 @slash.slash(name="start-session", description="Start a focus session in 5 minutes")
 async def _test(ctx: SlashContext):
-    await ctx.send(
+    await ctx.send(content="Ok! React below to join 👇", hidden=True)
+    await ctx.channel.send(
         content=f"A focus session is starting in 5 minutes! React with {EMOJI_CHECK_MARK} to join!",
     )
