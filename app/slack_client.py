@@ -16,6 +16,72 @@ pookie_teams = {
     "T01D5J87VPH",  # Prod
     "T10RCBTFZ",  # Dev
 }
+SERVER_CONFIG = {
+    # born global
+    "T01ADE7GFG8": {
+        "community_name": "Born Global",
+        "community_manager_id": "U02UWR8ALGY",
+        "intro_channel_id": "C021BUWHPC0",
+        "member_join_channel_config": {
+            # general
+            "C0198SGS0J3": {
+                "reactions": [
+                    {
+                        "type": "dm",
+                        "template": "https://media.giphy.com/media/xsE65jaPsUKUo/giphy.gif",
+                    },
+                    {
+                        "type": "dm",
+                        "template": "Hi {user}\n\n"
+                        "Welcome to {community}!\n\n"
+                        "Feel free to tell us a little about your self in {intro_channel} if you'd like\n\n."
+                        "Not sure where to start? Here's a handy template:\n\n"
+                        ":wave: Who are you & What you are working on?\n"
+                        ":round_pushpin: Where are you based + timezone?\n"
+                        ":partying_face: One fun fact about you!\n"
+                        ":raised_hands: What got you excited to join the community?"
+                        "\n\n"
+                        "*About me*\n\n"
+                        "I'm a bot created by {community_manager} the community architect at {community}.\n\n"
+                        "For better or for worse, he seems to be always online.\n\n"
+                        "So Don't hesitate to reach out to him if you ever have any questions or need help with anything here.  ",
+                    },
+                ]
+            }
+        },
+    },
+    # Pookie Dev
+    "T10RCBTFZ": {
+        "community_name": "Pookie Dev",
+        "community_manager_id": "U10RD9Q4D",
+        "intro_channel_id": "C10RJ0NTT",
+        "member_join_channel_config": {
+            # public-channel-pookie-test
+            "C034BNA1HTP": [
+                {
+                    "type": "dm",
+                    "template": "https://media.giphy.com/media/xsE65jaPsUKUo/giphy.gif",
+                },
+                {
+                    "type": "dm",
+                    "template": "Hi {user}\n\n"
+                    "Welcome to {community}!\n\n"
+                    "Feel free to tell us a little about your self in {intro_channel} if you'd like\n\n."
+                    "Not sure where to start? Here's a handy template:\n\n"
+                    ":wave: Who are you & What you are working on?\n"
+                    ":round_pushpin: Where are you based + timezone?\n"
+                    ":partying_face: One fun fact about you!\n"
+                    ":raised_hands: What got you excited to join the community?"
+                    "\n\n"
+                    "*About me*\n\n"
+                    "I'm a bot created by {community_manager} the community architect at {community}.\n\n"
+                    "For better or for worse, he seems to be always online.\n\n"
+                    "So Don't hesitate to reach out to him if you ever have any questions or need help with anything here.  ",
+                },
+            ]
+        },
+    },
+}
 
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.DEBUG)
@@ -75,6 +141,7 @@ else:
                 "mpim:history",
                 "mpim:read",
                 "users:read",
+                "member_joined_channel",
             ],
         ),
     )
@@ -85,26 +152,6 @@ def handle_message(ack, payload, say, client):
     # import pdb;pdb.set_trace()
     print(payload)
     txt = payload.get("text", "").lower()
-    if txt == "<@u01hx3vlcrh> create groups":
-        # create teams channels
-        ch = payload.get("channel")
-        if not ch:
-            return
-        res = client.conversations_members(channel=ch)
-        if not res.get("ok"):
-            return
-        data = res.data
-        members = data.get("members")
-        metadata = data.get("response_metadata", {})
-        next_cursor = metadata.get("next_cursor")
-        while next_cursor:
-            res = client.conversations_members(channel=ch, cursor=next_cursor)
-            data = res.data
-            members += data.get("members")
-            metadata = data.get("response_metadata", {})
-            next_cursor = metadata.get("next_cursor")
-        ack()
-        return
     for prompt, responses in SIMPLE_RESPONSES.items():
         if txt.startswith(prompt):
             say(random.choice(responses))
@@ -216,3 +263,51 @@ Need something to find a time for everyone? Try https://whenisgood.net/Create \n
 Cheers!"""
             client.chat_postMessage(channel=new_channel_id, text=msg)
         say("Done!")
+
+
+def _get_server_config(payload):
+    team = payload.get("team")
+    return SERVER_CONFIG.get(team)
+
+
+@app.event("member_joined_channel")
+def handle_member_joined_channel(ack, payload, say, client):
+    ack()
+    user = payload.get("user")
+    if not user:
+        return
+    server_config = _get_server_config(payload)
+    if not server_config:
+        return
+    channel = payload.get("channel")
+    member_join_channel_config = server_config.get("member_join_channel_config", {})
+    if channel not in member_join_channel_config:
+        return
+    reactions = member_join_channel_config[channel] or []
+    for reaction in reactions:
+        template = reaction.get("template", "Hello {user}! Welcome to {community}!")
+        community = server_config.get("community_name", "this community")
+        community_manager_id = server_config.get("community_manager_id")
+        if community_manager_id:
+            community_manager = f"<@{community_manager_id}>"
+        else:
+            community_manager = ""
+        intro_channel_id = server_config.get("intro_channel_id")
+        if intro_channel_id:
+            intro_channel = f"<#{intro_channel_id}>"
+        else:
+            intro_channel = f"the introduction channel"
+        formatted_msg = template.format(
+            user=f"<@{user}>",
+            channel=f"<@{channel}>",
+            community=community,
+            community_manager=community_manager,
+            intro_channel=intro_channel,
+        )
+        print(formatted_msg)
+        if reaction.get("type") == "say":
+            print("saying", formatted_msg)
+            say(formatted_msg)
+        elif reaction.get("type") == "dm":
+            print("dming", formatted_msg)
+            client.chat_postMessage(channel=user, text=formatted_msg)
