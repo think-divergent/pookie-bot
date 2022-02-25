@@ -25,26 +25,21 @@ SERVER_CONFIG = {
         "member_join_channel_config": {
             # general
             "C0198SGS0J3": {
+                # "C02BQB21ZUM": {
                 "reactions": [
                     {
                         "type": "dm",
-                        "template": "https://media.giphy.com/media/xsE65jaPsUKUo/giphy.gif",
-                    },
-                    {
-                        "type": "dm",
-                        "template": "Hi {user}\n\n"
-                        "Welcome to {community}!\n\n"
-                        "Feel free to tell us a little about your self in {intro_channel} if you'd like\n\n."
-                        "Not sure where to start? Here's a handy template:\n\n"
+                        "template": "*Welcome to the {community} community {user}!*\n\n"
+                        "Feel free to introduce yourself in {intro_channel} with the template below if you'd like.\n\n\n"
                         ":wave: Who are you & What you are working on?\n"
                         ":round_pushpin: Where are you based + timezone?\n"
                         ":partying_face: One fun fact about you!\n"
                         ":raised_hands: What got you excited to join the community?"
-                        "\n\n"
-                        "*About me*\n\n"
-                        "I'm a bot created by {community_manager} the community architect at {community}.\n\n"
-                        "For better or for worse, he seems to be always online.\n\n"
-                        "So Don't hesitate to reach out to him if you ever have any questions or need help with anything here.  ",
+                        "\n\n\n"
+                        "*About me*\n"
+                        "I'm a bot created by {community_manager} the community architect at {community}.\n"
+                        "Don't hesitate to reach out if you have any questions or need help with anything here!",
+                        "image_attachment": "https://media.giphy.com/media/xsE65jaPsUKUo/giphy.gif",
                     },
                 ]
             }
@@ -57,28 +52,24 @@ SERVER_CONFIG = {
         "intro_channel_id": "C10RJ0NTT",
         "member_join_channel_config": {
             # public-channel-pookie-test
-            "C034BNA1HTP": [
-                {
-                    "type": "dm",
-                    "template": "https://media.giphy.com/media/xsE65jaPsUKUo/giphy.gif",
-                },
-                {
-                    "type": "dm",
-                    "template": "Hi {user}\n\n"
-                    "Welcome to {community}!\n\n"
-                    "Feel free to tell us a little about your self in {intro_channel} if you'd like\n\n."
-                    "Not sure where to start? Here's a handy template:\n\n"
-                    ":wave: Who are you & What you are working on?\n"
-                    ":round_pushpin: Where are you based + timezone?\n"
-                    ":partying_face: One fun fact about you!\n"
-                    ":raised_hands: What got you excited to join the community?"
-                    "\n\n"
-                    "*About me*\n\n"
-                    "I'm a bot created by {community_manager} the community architect at {community}.\n\n"
-                    "For better or for worse, he seems to be always online.\n\n"
-                    "So Don't hesitate to reach out to him if you ever have any questions or need help with anything here.  ",
-                },
-            ]
+            "C034BNA1HTP": {
+                "reactions": [
+                    {
+                        "type": "dm",
+                        "template": "*Welcome to {community} {user}!*\n\n"
+                        "Feel free to introduce yourself in {intro_channel} with the template below if you'd like.\n\n\n"
+                        ":wave: Who are you & What you are working on?\n"
+                        ":round_pushpin: Where are you based + timezone?\n"
+                        ":partying_face: One fun fact about you!\n"
+                        ":raised_hands: What got you excited to join the community?"
+                        "\n\n\n"
+                        "*About me*\n"
+                        "I'm a bot created by {community_manager} the community architect at {community}.\n"
+                        "Don't hesitate to reach out if you have any questions or need help with anything here!",
+                        "image_attachment": "https://media.giphy.com/media/xsE65jaPsUKUo/giphy.gif",
+                    },
+                ]
+            }
         },
     },
 }
@@ -141,7 +132,6 @@ else:
                 "mpim:history",
                 "mpim:read",
                 "users:read",
-                "member_joined_channel",
             ],
         ),
     )
@@ -150,7 +140,6 @@ else:
 @app.event("message")
 def handle_message(ack, payload, say, client):
     # import pdb;pdb.set_trace()
-    print(payload)
     txt = payload.get("text", "").lower()
     for prompt, responses in SIMPLE_RESPONSES.items():
         if txt.startswith(prompt):
@@ -182,6 +171,7 @@ def render_members(members):
 
 @app.event("app_mention")
 def handle_mention(ack, payload, say, client):
+    print("app mention")
     user = payload.get("user")
     ack()
     blocks = payload.get("blocks")
@@ -272,42 +262,73 @@ def _get_server_config(payload):
 
 @app.event("member_joined_channel")
 def handle_member_joined_channel(ack, payload, say, client):
-    ack()
-    user = payload.get("user")
-    if not user:
-        return
-    server_config = _get_server_config(payload)
-    if not server_config:
-        return
-    channel = payload.get("channel")
-    member_join_channel_config = server_config.get("member_join_channel_config", {})
-    if channel not in member_join_channel_config:
-        return
-    reactions = member_join_channel_config[channel] or []
-    for reaction in reactions:
-        template = reaction.get("template", "Hello {user}! Welcome to {community}!")
-        community = server_config.get("community_name", "this community")
-        community_manager_id = server_config.get("community_manager_id")
-        if community_manager_id:
-            community_manager = f"<@{community_manager_id}>"
-        else:
-            community_manager = ""
-        intro_channel_id = server_config.get("intro_channel_id")
-        if intro_channel_id:
-            intro_channel = f"<#{intro_channel_id}>"
-        else:
-            intro_channel = f"the introduction channel"
-        formatted_msg = template.format(
-            user=f"<@{user}>",
-            channel=f"<@{channel}>",
-            community=community,
-            community_manager=community_manager,
-            intro_channel=intro_channel,
-        )
-        print(formatted_msg)
-        if reaction.get("type") == "say":
-            print("saying", formatted_msg)
-            say(formatted_msg)
-        elif reaction.get("type") == "dm":
-            print("dming", formatted_msg)
-            client.chat_postMessage(channel=user, text=formatted_msg)
+    try:
+        print("member_joined_channel", payload)
+        ack()
+        user = payload.get("user")
+        if not user:
+            print("user not found")
+            return
+        server_config = _get_server_config(payload)
+        if not server_config:
+            print("server config not found")
+            return
+        channel = payload.get("channel")
+        member_join_channel_config = server_config.get("member_join_channel_config", {})
+        if channel not in member_join_channel_config:
+            print("channel not in join config")
+            return
+        for reaction in member_join_channel_config[channel].get("reactions", []):
+            template = reaction.get("template", "Hello {user}! Welcome to {community}!")
+            community = server_config.get("community_name", "this community")
+            community_manager_id = server_config.get("community_manager_id")
+            if community_manager_id:
+                community_manager = f"<@{community_manager_id}>"
+            else:
+                community_manager = ""
+            intro_channel_id = server_config.get("intro_channel_id")
+            if intro_channel_id:
+                intro_channel = f"<#{intro_channel_id}>"
+            else:
+                intro_channel = f"the introduction channel"
+            formatted_msg = template.format(
+                user=f"<@{user}>",
+                channel=f"<@{channel}>",
+                community=community,
+                community_manager=community_manager,
+                intro_channel=intro_channel,
+            )
+            print(formatted_msg)
+            if "image_attachment" in reaction:
+                blocks = [
+                    {
+                        "type": "section",
+                        "text": {
+                            "type": "mrkdwn",
+                            "text": formatted_msg,
+                        },
+                    },
+                    {
+                        "type": "image",
+                        "image_url": "https://media.giphy.com/media/xsE65jaPsUKUo/giphy.gif",
+                        "alt_text": "hello",
+                    },
+                ]
+            else:
+                blocks = None
+            if reaction.get("type") == "say":
+                print("saying", formatted_msg)
+                if blocks:
+                    say(blocks=blocks, text=formatted_msg)
+                else:
+                    say(formatted_msg)
+            elif reaction.get("type") == "dm":
+                print("dming", formatted_msg)
+                if blocks:
+                    client.chat_postMessage(
+                        channel=user, text=formatted_msg, blocks=blocks
+                    )
+                else:
+                    client.chat_postMessage(channel=user, text=formatted_msg)
+    except Exception as e:
+        logger.exception(e)
