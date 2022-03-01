@@ -171,7 +171,7 @@ def render_members(members):
 
 @app.event("app_mention")
 def handle_mention(ack, payload, say, client):
-    print("app mention")
+    logger.debug("app mention")
     user = payload.get("user")
     ack()
     blocks = payload.get("blocks")
@@ -263,20 +263,20 @@ def _get_server_config(payload):
 @app.event("member_joined_channel")
 def handle_member_joined_channel(ack, payload, say, client):
     try:
-        print("member_joined_channel", payload)
+        logger.debug("member_joined_channel", payload)
         ack()
         user = payload.get("user")
         if not user:
-            print("user not found")
+            logger.debug("user not found")
             return
         server_config = _get_server_config(payload)
         if not server_config:
-            print("server config not found")
+            logger.debug("server config not found")
             return
         channel = payload.get("channel")
         member_join_channel_config = server_config.get("member_join_channel_config", {})
         if channel not in member_join_channel_config:
-            print("channel not in join config")
+            logger.debug("channel not in join config")
             return
         for reaction in member_join_channel_config[channel].get("reactions", []):
             template = reaction.get("template", "Hello {user}! Welcome to {community}!")
@@ -290,7 +290,7 @@ def handle_member_joined_channel(ack, payload, say, client):
             if intro_channel_id:
                 intro_channel = f"<#{intro_channel_id}>"
             else:
-                intro_channel = f"the introduction channel"
+                intro_channel = "the introduction channel"
             formatted_msg = template.format(
                 user=f"<@{user}>",
                 channel=f"<@{channel}>",
@@ -298,7 +298,7 @@ def handle_member_joined_channel(ack, payload, say, client):
                 community_manager=community_manager,
                 intro_channel=intro_channel,
             )
-            print(formatted_msg)
+            logger.debug(formatted_msg)
             if "image_attachment" in reaction:
                 blocks = [
                     {
@@ -317,13 +317,13 @@ def handle_member_joined_channel(ack, payload, say, client):
             else:
                 blocks = None
             if reaction.get("type") == "say":
-                print("saying", formatted_msg)
+                logger.debug("saying", formatted_msg)
                 if blocks:
                     say(blocks=blocks, text=formatted_msg)
                 else:
                     say(formatted_msg)
             elif reaction.get("type") == "dm":
-                print("dming", formatted_msg)
+                logger.debug("dming", formatted_msg)
                 if blocks:
                     client.chat_postMessage(
                         channel=user, text=formatted_msg, blocks=blocks
