@@ -22,10 +22,27 @@ SERVER_CONFIG = {
         "community_name": "Born Global",
         "community_manager_id": "U02UWR8ALGY",
         "intro_channel_id": "C021BUWHPC0",
+        "team_join_config": {
+            "reactions": [
+                {
+                    "type": "dm",
+                    "template": "*Welcome to the {community} community {user}!*\n\n"
+                    "Feel free to introduce yourself in {intro_channel} with the template below if you'd like.\n\n\n"
+                    ":wave: Who are you & What you are working on?\n"
+                    ":round_pushpin: Where are you based + timezone?\n"
+                    ":partying_face: One fun fact about you!\n"
+                    ":raised_hands: What got you excited to join the community?"
+                    "\n\n\n"
+                    "*About me*\n"
+                    "I'm a bot created by {community_manager} the community architect at {community}.\n"
+                    "Don't hesitate to reach out if you have any questions or need help with anything here!",
+                    "image_attachment": "https://media.giphy.com/media/xsE65jaPsUKUo/giphy.gif",
+                },
+            ]
+        },
         "member_join_channel_config": {
             # general
             "C0198SGS0J3": {
-                # "C02BQB21ZUM": {
                 "reactions": [
                     {
                         "type": "dm",
@@ -42,7 +59,26 @@ SERVER_CONFIG = {
                         "image_attachment": "https://media.giphy.com/media/xsE65jaPsUKUo/giphy.gif",
                     },
                 ]
-            }
+            },
+            # test1
+            "C02BQB21ZUM": {
+                "reactions": [
+                    {
+                        "type": "dm",
+                        "template": "*Welcome to the {community} community {user}!*\n\n"
+                        "Feel free to introduce yourself in {intro_channel} with the template below if you'd like.\n\n\n"
+                        ":wave: Who are you & What you are working on?\n"
+                        ":round_pushpin: Where are you based + timezone?\n"
+                        ":partying_face: One fun fact about you!\n"
+                        ":raised_hands: What got you excited to join the community?"
+                        "\n\n\n"
+                        "*About me*\n"
+                        "I'm a bot created by {community_manager} the community architect at {community}.\n"
+                        "Don't hesitate to reach out if you have any questions or need help with anything here!",
+                        "image_attachment": "https://media.giphy.com/media/xsE65jaPsUKUo/giphy.gif",
+                    },
+                ]
+            },
         },
     },
     # Pookie Dev
@@ -50,6 +86,24 @@ SERVER_CONFIG = {
         "community_name": "Pookie Dev",
         "community_manager_id": "U10RD9Q4D",
         "intro_channel_id": "C10RJ0NTT",
+        "team_join_config": {
+            "reactions": [
+                {
+                    "type": "dm",
+                    "template": "*Welcome to the {community} community {user}!*\n\n"
+                    "Feel free to introduce yourself in {intro_channel} with the template below if you'd like.\n\n\n"
+                    ":wave: Who are you & What you are working on?\n"
+                    ":round_pushpin: Where are you based + timezone?\n"
+                    ":partying_face: One fun fact about you!\n"
+                    ":raised_hands: What got you excited to join the community?"
+                    "\n\n\n"
+                    "*About me*\n"
+                    "I'm a bot created by {community_manager} the community architect at {community}.\n"
+                    "Don't hesitate to reach out if you have any questions or need help with anything here!",
+                    "image_attachment": "https://media.giphy.com/media/xsE65jaPsUKUo/giphy.gif",
+                },
+            ]
+        },
         "member_join_channel_config": {
             # public-channel-pookie-test
             "C034BNA1HTP": {
@@ -187,6 +241,9 @@ def handle_mention(ack, payload, say, client):
     if cmd == "help":
         say("Here are the available commands:\n\n@Pookie create teams\n\n@Pookie help")
         return
+    if cmd == "team_join_test":
+        handle_team_join(ack, payload, say, client)
+        return
     if cmd == "create teams":
         # create teams for current channel
         if len(elms) != 2:
@@ -257,13 +314,91 @@ Cheers!"""
 
 def _get_server_config(payload):
     team = payload.get("team")
+    if not team:
+        team = payload.get("user", {}).get("team_id")
     return SERVER_CONFIG.get(team)
+
+
+def _perform_reactions(user, client, server_config, reactions, say):
+    for reaction in reactions:
+        template = reaction.get("template", "Hello {user}! Welcome to {community}!")
+        community = server_config.get("community_name", "this community")
+        community_manager_id = server_config.get("community_manager_id")
+        if community_manager_id:
+            community_manager = f"<@{community_manager_id}>"
+        else:
+            community_manager = ""
+        intro_channel_id = server_config.get("intro_channel_id")
+        if intro_channel_id:
+            intro_channel = f"<#{intro_channel_id}>"
+        else:
+            intro_channel = "the introduction channel"
+        formatted_msg = template.format(
+            user=f"<@{user}>",
+            community=community,
+            community_manager=community_manager,
+            intro_channel=intro_channel,
+        )
+        logger.debug(formatted_msg)
+        if "image_attachment" in reaction:
+            blocks = [
+                {
+                    "type": "section",
+                    "text": {
+                        "type": "mrkdwn",
+                        "text": formatted_msg,
+                    },
+                },
+                {
+                    "type": "image",
+                    "image_url": "https://media.giphy.com/media/xsE65jaPsUKUo/giphy.gif",
+                    "alt_text": "hello",
+                },
+            ]
+        else:
+            blocks = None
+        if reaction.get("type") == "say":
+            logger.debug("saying: " + formatted_msg)
+            if blocks:
+                say(blocks=blocks, text=formatted_msg)
+            else:
+                say(formatted_msg)
+        elif reaction.get("type") == "dm":
+            logger.debug("dming:" + formatted_msg)
+            if blocks:
+                client.chat_postMessage(channel=user, text=formatted_msg, blocks=blocks)
+            else:
+                client.chat_postMessage(channel=user, text=formatted_msg)
+
+
+@app.event("team_join")
+def handle_team_join(ack, payload, say, client):
+    try:
+        logger.debug(f"team_join: {payload}")
+        ack()
+        user = payload.get("user", {}).get("id")
+        if not user:
+            logger.debug("user not found")
+            return
+        server_config = _get_server_config(payload)
+        if not server_config:
+            logger.debug("server config not found")
+            return
+        team_join_config = server_config.get("team_join_config", {})
+        if not team_join_config:
+            logger.debug("no team join config")
+            return
+        _perform_reactions(
+            user, client, server_config, team_join_config.get("reactions", []), say
+        )
+    except Exception as e:
+        logger.exception(e)
 
 
 @app.event("member_joined_channel")
 def handle_member_joined_channel(ack, payload, say, client):
     try:
-        logger.debug("member_joined_channel", payload)
+        logger.debug(f"member_joined_channel: {payload}")
         ack()
         user = payload.get("user")
         if not user:
@@ -278,57 +413,12 @@ def handle_member_joined_channel(ack, payload, say, client):
         if channel not in member_join_channel_config:
             logger.debug("channel not in join config")
             return
-        for reaction in member_join_channel_config[channel].get("reactions", []):
-            template = reaction.get("template", "Hello {user}! Welcome to {community}!")
-            community = server_config.get("community_name", "this community")
-            community_manager_id = server_config.get("community_manager_id")
-            if community_manager_id:
-                community_manager = f"<@{community_manager_id}>"
-            else:
-                community_manager = ""
-            intro_channel_id = server_config.get("intro_channel_id")
-            if intro_channel_id:
-                intro_channel = f"<#{intro_channel_id}>"
-            else:
-                intro_channel = "the introduction channel"
-            formatted_msg = template.format(
-                user=f"<@{user}>",
-                channel=f"<@{channel}>",
-                community=community,
-                community_manager=community_manager,
-                intro_channel=intro_channel,
-            )
-            logger.debug(formatted_msg)
-            if "image_attachment" in reaction:
-                blocks = [
-                    {
-                        "type": "section",
-                        "text": {
-                            "type": "mrkdwn",
-                            "text": formatted_msg,
-                        },
-                    },
-                    {
-                        "type": "image",
-                        "image_url": "https://media.giphy.com/media/xsE65jaPsUKUo/giphy.gif",
-                        "alt_text": "hello",
-                    },
-                ]
-            else:
-                blocks = None
-            if reaction.get("type") == "say":
-                logger.debug("saying", formatted_msg)
-                if blocks:
-                    say(blocks=blocks, text=formatted_msg)
-                else:
-                    say(formatted_msg)
-            elif reaction.get("type") == "dm":
-                logger.debug("dming", formatted_msg)
-                if blocks:
-                    client.chat_postMessage(
-                        channel=user, text=formatted_msg, blocks=blocks
-                    )
-                else:
-                    client.chat_postMessage(channel=user, text=formatted_msg)
+        _perform_reactions(
+            user,
+            client,
+            server_config,
+            member_join_channel_config[channel].get("reactions", []),
+            say,
+        )
     except Exception as e:
         logger.exception(e)

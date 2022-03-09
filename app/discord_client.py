@@ -1,4 +1,5 @@
 import requests
+import pytz
 import asyncio
 import arrow
 from collections import defaultdict
@@ -9,11 +10,12 @@ import hashlib
 
 from typing import Dict
 import discord
-from discord.ext import commands
+from discord.ext import tasks, commands
 from discord_slash import SlashCommand, SlashContext
 from common_responses import SIMPLE_RESPONSES
 import logging
 from petname import get_random_name
+
 
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.DEBUG)
@@ -91,6 +93,9 @@ GROUP_IDX_TO_MEET_TIME = {
         "minute": 30,
     },
 }
+
+with open("daily_topics.txt", "r") as f:
+    daily_topics = f.read().split("\n")
 
 
 def _daily_random_shuffle(items):
@@ -621,3 +626,26 @@ async def _test(ctx: SlashContext):
     await ctx.channel.send(
         content=f"A focus session is starting in 5 minutes! React with {EMOJI_CHECK_MARK} to join!",
     )
+
+
+shared_data = {
+    "last_random_topic": datetime.datetime.now(pytz.timezone("America/New_York"))
+}
+
+
+@tasks.loop(seconds=50)
+async def hourly_tasks():
+    now = datetime.datetime.now(pytz.timezone("America/New_York"))
+    if (
+        now.hour != 8
+        or now.minute != 30
+        or (now - shared_data["last_random_topic"]).total_seconds() < 60
+    ):
+        return
+    shared_data["last_random_topic"] = now
+    td_guild = client.get_guild(THINK_DIVERGENT_GUILD)
+    random_topic = random.choice(daily_topics)
+    if td_guild:
+        for channel in td_guild.channels:
+            if channel.id == 951101588729126993:
+                await channel.send(random_topic)

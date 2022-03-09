@@ -18,3 +18,7 @@ https://discord.com/oauth2/authorize?client_id=795343874049703986&scope=bot%20ap
 # Invite DevPookie to Your Server
 https://discord.com/oauth2/authorize?client_id=817371651653632020&scope=bot%20applications.commands&permissions=8
 
+# Development Notes
+## Add new slack events
+Make sure to add the list of events to [Event Subscriptions](https://api.slack.com/apps/A01HWT3TYCA/event-subscriptions)
+During development, slack bot uses bot token, if the event requires additional scopes, they need to be added [here](https://api.slack.com/apps/A01T0HFLTUH/oauth)

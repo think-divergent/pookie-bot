@@ -3,7 +3,7 @@ import os
 import threading
 
 
-from discord_client import client as discord_app
+from discord_client import client as discord_app, hourly_tasks
 from slack_client import app as slack_app
 
 DISCORD_TOKEN = os.environ.get("DISCORD_TOKEN", "")
@@ -11,6 +11,7 @@ logging.basicConfig(level=logging.INFO)
 
 
 def run_discord_client():
+    hourly_tasks.start()
     discord_app.run(DISCORD_TOKEN)
 
 
