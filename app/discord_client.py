@@ -49,6 +49,7 @@ if os.getenv("DEVPOOKIE"):
     THINK_DIVERGENT_GUILD = 699390284416417842
 EXISTING_PARTICIPANTS_SET = set()
 EXISTING_PARTICIPANTS = []
+PRIORITY_TOPIC = ""
 
 # TODO save this to DB somewhere
 GUILD_2_COLLAB_SESSION_CAT_ID = {
@@ -576,6 +577,15 @@ async def on_message(message):
                     )
                 await message.delete()
         return
+    if txt.startswith("</suggest-topic"):
+        try:
+            global PRIORITY_TOPIC
+            PRIORITY_TOPIC = str(txt).split("</suggest-topic", 1)[1]
+
+        except:
+            # this is ok, a different bot(Pookie Dev for example) deleted it
+            pass
+        return
     if txt.startswith("</start-session"):
         try:
             await message.delete()
@@ -645,7 +655,10 @@ async def hourly_tasks():
     shared_data["last_random_topic"] = now
     td_guild = client.get_guild(THINK_DIVERGENT_GUILD)
     random_topic = random.choice(daily_topics)
+    if PRIORITY_TOPIC == "":
+        random_topic = PRIORITY_TOPIC
     if td_guild:
         for channel in td_guild.channels:
             if channel.id == 951101588729126993:
                 await channel.send(random_topic)
+                PRIORITY_TOPIC = ""
