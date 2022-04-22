@@ -28,7 +28,7 @@ SERVER_CONFIG = {
                     "type": "dm",
                     "template": "*Welcome to the {community} community {user}!*\n\n"
                     "Feel free to introduce yourself in {intro_channel} with the template below if you'd like.\n\n\n"
-                    ":wave: Who are you & What you are working on?\n"
+                    ":wave: Who are you & What do you love about what you do?\n"
                     ":round_pushpin: Where are you based + timezone?\n"
                     ":partying_face: One fun fact about you!\n"
                     ":raised_hands: What got you excited to join the community?"
@@ -48,7 +48,7 @@ SERVER_CONFIG = {
                         "type": "dm",
                         "template": "*Welcome to the {community} community {user}!*\n\n"
                         "Feel free to introduce yourself in {intro_channel} with the template below if you'd like.\n\n\n"
-                        ":wave: Who are you & What you are working on?\n"
+                        ":wave: Who are you & What do you love about what you do?\n"
                         ":round_pushpin: Where are you based + timezone?\n"
                         ":partying_face: One fun fact about you!\n"
                         ":raised_hands: What got you excited to join the community?"
