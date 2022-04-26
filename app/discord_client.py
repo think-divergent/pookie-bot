@@ -1,4 +1,5 @@
 import requests
+import time
 import pytz
 import asyncio
 import arrow
@@ -15,6 +16,7 @@ from discord_slash import SlashCommand, SlashContext
 from common_responses import SIMPLE_RESPONSES
 import logging
 from petname import get_random_name
+import redis
 
 
 logger = logging.getLogger(__name__)
@@ -28,6 +30,7 @@ client = commands.Bot(command_prefix="", intents=intents)
 slash = SlashCommand(client)
 
 COWORKING_SERVER_URL = os.environ.get("COWORKING_SERVER_URL", "http://localhost:5000")
+REDIS_URL = os.environ.get("REDIS_URL", "redis://0.0.0.0/0")
 EMOJI_CHECK_MARK = "✅"
 POOKIE_USER_ID = os.environ.get("POOKIE_USER_ID", 795343874049703986)
 LANDING_PAD_CHANNEL_ID = 792039815327645736
@@ -93,6 +96,22 @@ GROUP_IDX_TO_MEET_TIME = {
         "minute": 30,
     },
 }
+
+# test redis connection first
+redis_service = redis.Redis.from_url(REDIS_URL)
+connected = False
+for i in range(5):
+    try:
+        redis_service.ping()
+        connected = True
+        break
+    except redis.exceptions.ConnectionError as e:
+        logger.error("Failed to connect to redis. Retrying in 1 sec...")
+        logger.exception(e)
+        time.sleep(1)
+if not connected:
+    logger.error("Giving up on connecting to redis")
+    raise redis.exceptions.ConnectionError(f"Failed to connect to redis at {REDIS_URL}")
 
 with open("daily_topics.txt", "r") as f:
     daily_topics = f.read().split("\n")
@@ -390,8 +409,6 @@ def group_members_by_timeslot(
     all_members, groups_to_member_ids: Dict[int, set], get_id=lambda x: x.id
 ):
     # deep copy groups to member_ids so we don't modify the original
-    print(all_members)
-    print(groups_to_member_ids)
     groups_to_member_ids = {
         group: {mid for mid in member_ids}
         for group, member_ids in groups_to_member_ids.items()
@@ -539,10 +556,20 @@ def group_members_by_timeslot(
 async def on_message(message):
     txt = message.content.lower()
     if message.author == client.user:
-        if txt.startswith("a focus session is starting"):
+        if txt.startswith("a coworking session is starting"):
+            session_users = {}
+            if message.embeds:
+                timestamp = message.embeds[0].timestamp.timestamp()
+                interaction_key = (
+                    f"pookie|session_starter|{message.channel.id}_{timestamp}"
+                )
+                starter_id = int(redis_service.get(interaction_key))
+                member = message.guild.get_member(starter_id)
+                session_users[member.id] = member
             print("new session starting")
             await message.add_reaction(EMOJI_CHECK_MARK)
-            session_users = {}
+
+            session_ready_time = {"current": None}
 
             def check(reaction, user):
                 if user == client.user:
@@ -550,31 +577,38 @@ async def on_message(message):
                 if str(reaction.emoji) == EMOJI_CHECK_MARK:
                     session_users[user.id] = user
                     if len(session_users) == 2:
+                        session_ready_time["current"] = datetime.datetime.utcnow()
+                    if len(session_users) >= 2:
                         return True
                 return False
 
-            try:
-                await client.wait_for("reaction_add", timeout=300.0, check=check)
-            except asyncio.TimeoutError:
-                if len(session_users) > 1:
-                    await message.channel.send(
-                        f"{len(session_users)} people just joined a focus session!\n\n"
-                        'Start your own with by typing "/start-session" into the chat!'
+            check_frequency = 15
+            for i in range(int(300 / check_frequency)):
+                try:
+                    await client.wait_for(
+                        "reaction_add", timeout=check_frequency, check=check
                     )
-                    await make_on_demand_group(
-                        message.guild, list(session_users.values())
-                    )
-                await message.delete()
-            else:
-                if len(session_users) > 1:
-                    await message.channel.send(
-                        f"{len(session_users)} people just joined a focus session!\n\n"
-                        'Start your own with by typing "/start-session" into the chat!'
-                    )
-                    await make_on_demand_group(
-                        message.guild, list(session_users.values())
-                    )
-                await message.delete()
+                except asyncio.TimeoutError:
+                    pass
+                finally:
+                    # if not last check, then wait another period for more users to join
+                    if i * check_frequency + check_frequency < 300:
+                        if not session_ready_time["current"]:
+                            continue
+                        if (
+                            datetime.datetime.utcnow() - session_ready_time["current"]
+                        ).total_seconds() < check_frequency - 1:
+                            continue
+                    if len(session_users) > 1:
+                        await message.channel.send(
+                            f"{len(session_users)} people just joined a coworking session!\n\n"
+                            'Start your own with by typing "/start-session" into the chat!'
+                        )
+                        await make_on_demand_group(
+                            message.guild, list(session_users.values())
+                        )
+                    await message.delete()
+                    break
         return
     if txt.startswith("</start-session"):
         try:
@@ -583,14 +617,14 @@ async def on_message(message):
             # this is ok, a different bot(Pookie Dev for example) deleted it
             pass
         return
-    # create focus sessions
-    if message.content.startswith(f"<@!{POOKIE_USER_ID}> create session"):
+    # create coworking sessions
+    if f"<@{POOKIE_USER_ID}> create session" in message.content:
         await make_on_demand_group(message.guild, message.mentions)
         return
-    if message.content.startswith(f"<@!{POOKIE_USER_ID}> create focus session"):
+    if f"<@{POOKIE_USER_ID}> create coworking session" in message.content:
         await make_on_demand_group(message.guild, message.mentions)
         return
-    if message.content.startswith(f"<@!{POOKIE_USER_ID}> end session"):
+    if f"{POOKIE_USER_ID}> end session" in message.content:
         await delete_on_demand_group(message.guild.id, message.channel)
         return
     if txt == "test_groups" and message.guild.id == 699390284416417842:
@@ -620,11 +654,21 @@ async def on_message(message):
             return
 
 
-@slash.slash(name="start-session", description="Start a focus session in 5 minutes")
+@slash.slash(name="start-session", description="Start a coworking session in 5 minutes")
 async def _test(ctx: SlashContext):
-    await ctx.send(content="Ok! React below to join 👇", hidden=True)
+    await ctx.send(content="Ok! Starting a session now!", hidden=True)
+    # keep track of who started the session so they don't have to react to the message
+    timestamp = datetime.datetime.utcnow()
+    interaction_key = f"pookie|session_starter|{ctx.channel.id}_{timestamp.timestamp()}"
+    interaction_value = ctx.author.id
+    res = redis_service.set(interaction_key, interaction_value, ex=450)
+    if not res:
+        await ctx.channel.send(
+            content="Something went wrong on our side. Please try again later",
+        )
     await ctx.channel.send(
-        content=f"A focus session is starting in 5 minutes! React with {EMOJI_CHECK_MARK} to join!",
+        content=f"A coworking session is starting in 5 minutes! \nReact with {EMOJI_CHECK_MARK} to join!",
+        embed=discord.Embed(description="New coworking session", timestamp=timestamp),
     )
 
 

@@ -16,6 +16,7 @@ psycopg2-binary = "*"
 arrow = "*"
 requests = "*"
 pytz = "*"
+redis = "*"
 
 [requires]
 python_version = "3.8"
