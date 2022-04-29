@@ -58,12 +58,44 @@ GUILD_2_COLLAB_SESSION_CAT_ID = {
     806941792532168735: 810096286492655646,  # ASI
     699390284416417842: 815777518699020318,  # SS
     742405250731999273: 897800785423917056,  # TD
+    968468250495160330: 968511008840777838,  # WID
 }
 
 GUILD_2_ONBOARDING_CAT_ID = {
     742405250731999273: 919013239755522071,
     699390284416417842: 919027765561393165,  # SS
+    968468250495160330: 968511381378859068,  # WID
 }
+
+GUILD_CONFIG = {
+    699390284416417842: {
+        "default_atomic_team_time": {
+            "date": 3,
+            "hour": 14,
+            "minute": 30,
+        }
+    },
+    742405250731999273: {
+        "community_category": 968511008840777838,
+        "onboarding_category": 968511381378859068,
+        "onboarding_challenge": "",
+    },
+    968468250495160330: {
+        "community_category": 968511008840777838,
+        "onboarding_category": 968511381378859068,
+        "onboarding_challenge": "Find one person from the last cohort with a marketing background.",
+        "atomic_team_signup_channel_id": 968508386280894564,
+        "atomic_team_signup_msg_id": 968534978952564736,
+        "atomic_team_category": 968536012458430544,
+        "archived_atomic_team_category": 968536082494922812,
+        "default_atomic_team_time": {
+            "date": 3,
+            "hour": 14,
+            "minute": 30,
+        },
+    },
+}
+
 
 REACTION_TO_IDX = {
     "1️⃣": 0,
@@ -123,6 +155,10 @@ def _daily_random_shuffle(items):
     rnd.shuffle(items)
 
 
+def _get_guild_config(guild_id):
+    return GUILD_CONFIG.get(guild_id)
+
+
 def group_participants(participants):
     # random participants
     participants = [x for x in participants]
@@ -161,10 +197,36 @@ def group_participants(participants):
     return groups
 
 
-async def make_groups(request_channel=None, dry_run=False):
+async def make_groups(request_channel=None, dry_run=False, messages=None):
     """create groups"""
-    channel = client.get_channel(LANDING_PAD_CHANNEL_ID)
-    msg = await channel.fetch_message(SIGNUP_MSG_ID)
+    opt_in_channel_id = LANDING_PAD_CHANNEL_ID
+    opt_in_msg_id = SIGNUP_MSG_ID
+    teams_category_id = ATOMIC_TEAM_CATEGORY_ID
+    old_teams_category_id = OLD_ATOMIC_TEAM_CATEGORY_ID
+    default_meet_time = None
+    print("Creating groups...")
+    if request_channel:
+        guild_id = request_channel.guild.id
+        guild_config = _get_guild_config(guild_id)
+        if guild_config:
+            opt_in_channel_id = guild_config.get(
+                "atomic_team_signup_channel_id", opt_in_channel_id
+            )
+            opt_in_msg_id = guild_config.get("atomic_team_signup_msg_id", opt_in_msg_id)
+            teams_category_id = guild_config.get(
+                "atomic_team_category", teams_category_id
+            )
+            old_teams_category_id = guild_config.get(
+                "archived_atomic_team_category", old_teams_category_id
+            )
+            default_meet_time = guild_config.get(
+                "default_atomic_team_time", default_meet_time
+            )
+    print(
+        opt_in_channel_id, teams_category_id, old_teams_category_id, default_meet_time
+    )
+    channel = client.get_channel(opt_in_channel_id)
+    msg = await channel.fetch_message(opt_in_msg_id)
     reaction = None
     for rec in msg.reactions:
         if rec.emoji == EMOJI_CHECK_MARK:
@@ -174,11 +236,14 @@ async def make_groups(request_channel=None, dry_run=False):
         return
     participants = await reaction.users().flatten()
     member_id_to_members = {p.id: p for p in participants}
+    """ disable discord timeslot mechanism
     # figure out who signed up for times
     availability_msg = await client.get_channel(ANNOUNCEMENT_CHANNEL_ID).fetch_message(
         TIME_MSG_ID
     )
     reactions = availability_msg.reactions
+    """
+    reactions = []
     groups_to_members = {}
     for rec in reactions:
         if rec.emoji in REACTION_TO_IDX:
@@ -208,8 +273,8 @@ async def make_groups(request_channel=None, dry_run=False):
             )
             await request_channel.send(output)
         return
-    category = client.get_channel(ATOMIC_TEAM_CATEGORY_ID)
-    archive_category = client.get_channel(OLD_ATOMIC_TEAM_CATEGORY_ID)
+    category = client.get_channel(teams_category_id)
+    archive_category = client.get_channel(old_teams_category_id)
     for channel in category.channels:
         await channel.edit(category=archive_category)
     txt_channel_perm = discord.PermissionOverwrite()
@@ -225,7 +290,7 @@ async def make_groups(request_channel=None, dry_run=False):
         group_name = f"team-{get_random_name()}"
         txt_channel = await category.create_text_channel(group_name + "-text")
         voice_channel = await category.create_voice_channel(group_name + "-voice")
-        meet_time = GROUP_IDX_TO_MEET_TIME.get(idx, None)
+        meet_time = GROUP_IDX_TO_MEET_TIME.get(idx, default_meet_time)
         for participant in group:
             try:
                 await txt_channel.set_permissions(
@@ -238,9 +303,9 @@ async def make_groups(request_channel=None, dry_run=False):
                 logger.exception(e)
         mentions = " ".join([x.mention for x in group])
         msg_header = (
-            f"Welcome {mentions} to {group_name}! Your Atomic Team for the month! To get started: \n\n"
-            "1. Introduce yourself! What are you working on these days? What would you like some help with?"
-            " What do you enjoy helping others with?\n\n"
+            f"Welcome {mentions} to your Atomic Team for the next 4 weeks. To get started: \n\n"
+            "1. Introduce yourself!\n-What are you working on these days?\n-What could you use some help with?"
+            "\nWhat do you enjoy helping others with?\n\n"
         )
         msg_body = (
             "2. Since you haven't picked your perferred weekly meet time (https://discord.com/channels/742405250731999273/811024435330678784/871734658931511367), make an appointment to meet some time during the first week - get to know each other, determine how you best communicate with everyone in your team, and how often you want to check in (be sure to check in at least once a week).\n\n"
@@ -260,13 +325,18 @@ async def make_groups(request_channel=None, dry_run=False):
             event_end_time = start_time + datetime.timedelta(hours=1)
             end_time = start_time
             end_time += datetime.timedelta(days=7 * 5)
-            event_count = 6
+            event_count = 4
             meet_time_str = start_time.format("dddd hh:mm a")
             start_time_str = start_time.format("YYYYMMDDTHHmmss")
             end_time_str = event_end_time.format("YYYYMMDDTHHmmss")
             calendar_url = f"https://calendar.google.com/calendar/u/0/r/eventedit?dates={start_time_str}/{end_time_str}&text=Think%20Divergent%20Atomic%20Team&location=Discord%20Voice%20Channel&recur=RRULE:FREQ%3DWEEKLY;COUNT%3D{event_count}&ctz=America%2FNew_York"
-            msg_body = f"2. Looks like the best time for all of you to get together is weekly on {meet_time_str} US Eastern Time. You can add these times to your google calendar through this link: {calendar_url}. If this time doesn't work for you, no worries, feel free to still share updates through text with each other! \n\n"
-        msg_footer = "Thank you for participating and please share any feedback and suggestions in the #feedback-and-suggestions channel!"
+            msg_body = f"2. Looks like the best time for all of you to get together is weekly on {meet_time_str} US Eastern Time.\nYou can add these times to your google calendar with the link below.\nIf this time doesn't work for you, no worries, feel free to still share updates through text with each other! \n\n"
+            kwargs["embed"] = discord.Embed(
+                title="Add to Google Calendar",
+                description="Add your team's meet times to your google calendar with this link",
+                url=calendar_url,
+            )
+        msg_footer = ""
         await txt_channel.send(f"{msg_header}{msg_body}{msg_footer}", **kwargs)
         await txt_channel.send(
             "By the way, remember to enable notification for this channel so you won't miss any reminders here! https://imgur.com/a/au6fHwC"
@@ -358,8 +428,7 @@ async def make_onboarding_group(guild, members):
         view_channel=True,
         **{key: value for key, value in discord.Permissions.text() if value},
     )
-    random_name = get_random_name()
-    group_name = f"{members[0]}-onboarding-group-{random_name}"
+    group_name = f"Hello-{members[0]}"
     cat_id = GUILD_2_ONBOARDING_CAT_ID.get(guild_id)
     if not cat_id:
         return
@@ -375,13 +444,20 @@ async def make_onboarding_group(guild, members):
             await txt_channel.set_permissions(member, overwrite=txt_channel_perm)
         except Exception as e:
             logger.exception(e)
-    await txt_channel.send(
-        f"Hey {members[0].mention}, thanks for joining us! We’re so happy to have you as part of our community.\n\n"
-        f"To help you find your way around and navigate our cultivated chaos, please meet your onboarding buddy {members[1].mention}. Go ahead and ask them any questions you might have about Think Divergent, what we have going on, or anything else that’s on your mind. \n\n"
-        "Feeling adventurous? Here's an onboarding challenge for you:\n\n"
-        "Find the person who's talked about crypto the most on this server and figure out their favorite coin right now!\n\n"
-        "Feel free to team up with your buddy! Good luck and have fun! :orange_heart:"
+    msg = (
+        f"Welcome to the {guild.name} community {members[0].mention}!\n\n"
+        f"Meet your onboarding buddy {members[1].mention}!\n"
+        f"Feel free to ask them any questions you might have about the community:\n"
+        f"what we have going on, how you can contribute, and etc. \n\n"
     )
+    config = _get_guild_config(guild_id)
+    if config and config.get("onboarding_challenge"):
+        onboarding_challenge = config.get("onboarding_challenge")
+        msg += (
+            "Feeling adventurous? Here's an onboarding challenge:\n"
+            f"{onboarding_challenge}\nTeam up with your buddy and enjoy the community!"
+        )
+    await txt_channel.send(msg)
 
 
 @client.event
@@ -618,10 +694,10 @@ async def on_message(message):
             pass
         return
     # create coworking sessions
-    if f"<@{POOKIE_USER_ID}> create session" in message.content:
+    if f"{POOKIE_USER_ID}> create session" in message.content:
         await make_on_demand_group(message.guild, message.mentions)
         return
-    if f"<@{POOKIE_USER_ID}> create coworking session" in message.content:
+    if f"{POOKIE_USER_ID}> create coworking session" in message.content:
         await make_on_demand_group(message.guild, message.mentions)
         return
     if f"{POOKIE_USER_ID}> end session" in message.content:
@@ -630,15 +706,12 @@ async def on_message(message):
     if txt == "test_groups" and message.guild.id == 699390284416417842:
         await make_groups(request_channel=message.channel, dry_run=True)
         return
-    if message.guild.id != THINK_DIVERGENT_GUILD:
-        return
-    if txt == "create_groups":
-        print("got create_groups")
-        if message.author.id != STEVE_ID:
-            return
+    if f"{POOKIE_USER_ID}> create atomic teams" in txt:
         print("Creating Groups")
-        await make_groups()
+        await make_groups(request_channel=message.channel)
         print("Created Groups")
+        return
+    if message.guild.id != THINK_DIVERGENT_GUILD:
         return
     if txt == "dry_run_create_groups":
         print("got create_groups")

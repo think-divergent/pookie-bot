@@ -26,9 +26,6 @@ spec:
           image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
           imagePullPolicy: {{ .Values.image.pullPolicy }}
           args: {{ .Values.container.args}}
-          env:
-          - name: COWORKING_SERVER_URL
-            value: http://tm-profile
           envFrom:
           - secretRef:
               name: "pookie-bot-secrets"
