@@ -8,7 +8,7 @@ from slack_sdk.oauth.installation_store.sqlalchemy import SQLAlchemyInstallation
 from slack_sdk.oauth.state_store.sqlalchemy import SQLAlchemyOAuthStateStore
 from common_responses import SIMPLE_RESPONSES
 from petname import get_random_name
-from discord_client import group_participants
+from clients.discord.groups import group_participants
 import sqlalchemy
 import logging
 

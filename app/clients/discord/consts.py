@@ -1,0 +1,1 @@
+EMOJI_CHECK_MARK = "✅"
