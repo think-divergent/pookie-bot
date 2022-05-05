@@ -284,7 +284,7 @@ async def make_atomic_teams(guild_id, dry_run_channel=None):
             meet_time_str = start_time.format("dddd hh:mm a")
             start_time_str = start_time.format("YYYYMMDDTHHmmss")
             end_time_str = event_end_time.format("YYYYMMDDTHHmmss")
-            calendar_url = f"https://calendar.google.com/calendar/u/0/r/eventedit?dates={start_time_str}/{end_time_str}&text=Think%20Divergent%20Atomic%20Team&location=Discord%20Voice%20Channel&recur=RRULE:FREQ%3DWEEKLY;COUNT%3D{event_count}&ctz={urllib.parse.urlencode(meet_time_tz)}"
+            calendar_url = f"https://calendar.google.com/calendar/u/0/r/eventedit?dates={start_time_str}/{end_time_str}&text=Think%20Divergent%20Atomic%20Team&location=Discord%20Voice%20Channel&recur=RRULE:FREQ%3DWEEKLY;COUNT%3D{event_count}&ctz={urllib.parse.quote_plus(meet_time_tz)}"
             msg_body = f"2. Looks like the best time for all of you to get together is weekly on {meet_time_str} US Eastern Time.\nYou can add these times to your google calendar with the link below.\nIf this time doesn't work for you, no worries, feel free to still share updates through text with each other! \n\n"
             kwargs["embed"] = discord.Embed(
                 title="Add to Google Calendar",

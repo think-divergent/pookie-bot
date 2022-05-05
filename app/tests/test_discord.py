@@ -183,3 +183,8 @@ class TestDiscord(TestCase):
         txt_channel.send = AsyncMock()
         asyncio.run(make_atomic_teams(guild_id))
         self.assertEqual(txt_channel.send.call_count, 6)
+        self.assertTrue(
+            txt_channel.send.call_args_list[4]
+            .kwargs["embed"]
+            .url.endswith("America%2FNew_York")
+        )
