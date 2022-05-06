@@ -161,12 +161,7 @@ async def on_raw_reaction_add(reaction):
             title=f"Set availability for Atomic Teams at {guild.name.capitalize()}",
             description="Set and update your availability to meet weekly with your atomic team.",
             url=url,
-            video={
-                "url": "https://cdn.thinkdivergent.com/video/collide-1080.mp4",
-                "height": 1080,
-                "width": 1080,
-            },
-        ),
+        ).set_image(url="https://cdn.thinkdivergent.com/video/set-availability.gif"),
     )
 
 
