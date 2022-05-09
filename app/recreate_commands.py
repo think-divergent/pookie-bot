@@ -21,5 +21,14 @@ asyncio.run(
         "Start a coworking session in 5 minutes",
     )
 )
+asyncio.run(
+    add_slash_command(
+        POOKIE_USER_ID,
+        DISCORD_TOKEN,
+        None,
+        "update-availability",
+        "Update your availability for Atomic Teams",
+    )
+)
 # list existing commands
 asyncio.run(get_all_commands(POOKIE_USER_ID, DISCORD_TOKEN))

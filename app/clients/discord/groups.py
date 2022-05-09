@@ -25,13 +25,17 @@ def get_new_session_link():
     return res.json().get("url", None)
 
 
-def get_connect_account_token(user_id):
+def get_connect_account_token(user):
+    if not user:
+        return None
+    payload = {
+        "platform": "discord",
+        "account_id": str(user.id),
+        "extras": {"username": user.name, "display_name": user.display_name},
+    }
     res = requests.post(
         f"{COWORKING_SERVER_URL}/internal/connect-account-token/",
-        json={
-            "platform": "discord",
-            "account_id": str(user_id),
-        },
+        json=payload,
     )
     if not res.ok:
         return None

@@ -150,7 +150,7 @@ async def on_raw_reaction_add(reaction):
     if not guild:
         return
     # new member signed up for atomic team
-    token = get_connect_account_token(reaction.member.id)
+    token = get_connect_account_token(reaction.member)
     url = (
         f"https://thinkdivergent.com/@ThinkDivergent/atomic-teams/availability/{token}"
     )
@@ -283,6 +283,35 @@ async def _test(ctx: SlashContext):
     await ctx.channel.send(
         content=f"A coworking session is starting in 5 minutes! \nReact with {EMOJI_CHECK_MARK} to join!",
         embed=discord.Embed(description="New coworking session", timestamp=timestamp),
+    )
+
+
+@slash.slash(
+    name="update-availability", description="Update your availability for Atomic Teams"
+)
+async def slash_update_availability(ctx: SlashContext):
+    # check for atomic team sign up message
+    guild_config = get_discord_server_config(ctx.guild_id)
+    if not guild_config:
+        return
+    guild = ctx.guild
+    if not guild:
+        return
+    # new member signed up for atomic team
+    token = get_connect_account_token(ctx.author)
+    url = (
+        f"https://thinkdivergent.com/@ThinkDivergent/atomic-teams/availability/{token}"
+    )
+    embed = discord.Embed(
+        title=f"Set availability for Atomic Teams at {guild.name.capitalize()}",
+        description="Set and update your availability to meet weekly with your atomic team.",
+        url=url,
+    ).set_image(url="https://cdn.thinkdivergent.com/video/set-availability.gif")
+
+    await ctx.send(
+        content=f"Here's your link to update availability! {url}",
+        embed=embed,
+        hidden=True,
     )
 
 
