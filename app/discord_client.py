@@ -141,6 +141,7 @@ async def on_raw_reaction_add(reaction):
     guild_config = get_discord_server_config(reaction.guild_id)
     if (
         not guild_config
+        or "alliance_slug" not in guild_config
         or reaction.message_id != guild_config.get("atomic_team_signup_msg_id")
         or reaction.channel_id != guild_config.get("atomic_team_signup_channel_id")
         or reaction.emoji.name != EMOJI_CHECK_MARK
@@ -151,9 +152,8 @@ async def on_raw_reaction_add(reaction):
         return
     # new member signed up for atomic team
     token = get_connect_account_token(reaction.member)
-    url = (
-        f"https://thinkdivergent.com/@ThinkDivergent/atomic-teams/availability/{token}"
-    )
+    slug = guild_config["alliance_slug"]
+    url = f"https://thinkdivergent.com/@{slug}/atomic-teams/availability/{token}"
     await reaction.member.send(
         f"Welcome to Atomic Teams at {guild.name.capitalize()}!\nSet your availability for a weekly meet up with your team with the link below\n{url}",
         embed=discord.Embed(

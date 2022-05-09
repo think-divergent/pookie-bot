@@ -1,5 +1,7 @@
 DISCORD_GUILD_CONFIG = {
     699390284416417842: {  # SS
+        # alliance
+        "alliance_slug": "TestAlliance",
         "coworking_category": 815777518699020318,
         "atomic_team_signup_channel_id": 874091378555117630,
         "atomic_team_signup_msg_id": 874091395143585844,
@@ -12,6 +14,8 @@ DISCORD_GUILD_CONFIG = {
         },
     },
     742405250731999273: {  # TD
+        # alliance
+        "alliance_slug": "ThinkDivergent",
         # onboarding
         "onboarding_category": 919013239755522071,
         "onboarding_challenge": "",
