@@ -111,7 +111,8 @@ if not connected:
     raise redis.exceptions.ConnectionError(f"Failed to connect to redis at {REDIS_URL}")
 
 with open("daily_topics.txt", "r") as f:
-    daily_topics = f.read().split("\n")
+    # remove lines with just whitespaces
+    daily_topics = [x for x in f.read().split("\n") if x.strip()]
 
 
 @client.event
