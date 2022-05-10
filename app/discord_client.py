@@ -300,9 +300,8 @@ async def slash_update_availability(ctx: SlashContext):
         return
     # new member signed up for atomic team
     token = get_connect_account_token(ctx.author)
-    url = (
-        f"https://thinkdivergent.com/@ThinkDivergent/atomic-teams/availability/{token}"
-    )
+    slug = guild_config["alliance_slug"]
+    url = f"https://thinkdivergent.com/@{slug}/atomic-teams/availability/{token}"
     embed = discord.Embed(
         title=f"Set availability for Atomic Teams at {guild.name.capitalize()}",
         description="Set and update your availability to meet weekly with your atomic team.",

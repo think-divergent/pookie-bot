@@ -49,3 +49,125 @@ DISCORD_GUILD_CONFIG = {
 
 def get_discord_server_config(guild_id):
     return DISCORD_GUILD_CONFIG.get(guild_id)
+
+
+SERVER_CONFIG = {
+    # born global
+    "T01ADE7GFG8": {
+        "alliance_slug": "BornGlobal",
+        "community_name": "Born Global",
+        "community_manager_id": "U02UWR8ALGY",
+        "intro_channel_id": "C021BUWHPC0",
+        "team_join_config": {
+            "reactions": [
+                {
+                    "type": "dm",
+                    "template": "*Welcome to the {community} community {user}!*\n\n"
+                    "Feel free to introduce yourself in {intro_channel} with the template below if you'd like.\n\n\n"
+                    ":wave: Who are you & What do you love about what you do?\n"
+                    ":round_pushpin: Where are you based + timezone?\n"
+                    ":partying_face: One fun fact about you!\n"
+                    ":raised_hands: What got you excited to join the community?"
+                    "\n\n\n"
+                    "*About me*\n"
+                    "I'm a bot created by {community_manager} the community architect at {community}.\n"
+                    "Don't hesitate to reach out if you have any questions or need help with anything here!",
+                    "image_attachment": "https://media.giphy.com/media/xsE65jaPsUKUo/giphy.gif",
+                },
+            ]
+        },
+        "member_join_channel_config": {
+            # general
+            "C0198SGS0J3": {
+                "reactions": [
+                    {
+                        "type": "dm",
+                        "template": "*Welcome to the {community} community {user}!*\n\n"
+                        "Feel free to introduce yourself in {intro_channel} with the template below if you'd like.\n\n\n"
+                        ":wave: Who are you & What do you love about what you do?\n"
+                        ":round_pushpin: Where are you based + timezone?\n"
+                        ":partying_face: One fun fact about you!\n"
+                        ":raised_hands: What got you excited to join the community?"
+                        "\n\n\n"
+                        "*About me*\n"
+                        "I'm a bot created by {community_manager} the community architect at {community}.\n"
+                        "Don't hesitate to reach out if you have any questions or need help with anything here!",
+                        "image_attachment": "https://media.giphy.com/media/xsE65jaPsUKUo/giphy.gif",
+                    },
+                ]
+            },
+            # test1
+            "C02BQB21ZUM": {
+                "reactions": [
+                    {
+                        "type": "dm",
+                        "template": "*Welcome to the {community} community {user}!*\n\n"
+                        "Feel free to introduce yourself in {intro_channel} with the template below if you'd like.\n\n\n"
+                        ":wave: Who are you & What you are working on?\n"
+                        ":round_pushpin: Where are you based + timezone?\n"
+                        ":partying_face: One fun fact about you!\n"
+                        ":raised_hands: What got you excited to join the community?"
+                        "\n\n\n"
+                        "*About me*\n"
+                        "I'm a bot created by {community_manager} the community architect at {community}.\n"
+                        "Don't hesitate to reach out if you have any questions or need help with anything here!",
+                        "image_attachment": "https://media.giphy.com/media/xsE65jaPsUKUo/giphy.gif",
+                    },
+                ]
+            },
+        },
+    },
+    # Pookie Dev
+    "T10RCBTFZ": {
+        "alliance_slug": "ThinkDivergent",
+        "community_name": "Pookie Dev",
+        "community_manager_id": "U10RD9Q4D",
+        "intro_channel_id": "C10RJ0NTT",
+        "team_join_config": {
+            "reactions": [
+                {
+                    "type": "dm",
+                    "template": "*Welcome to the {community} community {user}!*\n\n"
+                    "Feel free to introduce yourself in {intro_channel} with the template below if you'd like.\n\n\n"
+                    ":wave: Who are you & What you are working on?\n"
+                    ":round_pushpin: Where are you based + timezone?\n"
+                    ":partying_face: One fun fact about you!\n"
+                    ":raised_hands: What got you excited to join the community?"
+                    "\n\n\n"
+                    "*About me*\n"
+                    "I'm a bot created by {community_manager} the community architect at {community}.\n"
+                    "Don't hesitate to reach out if you have any questions or need help with anything here!",
+                    "image_attachment": "https://media.giphy.com/media/xsE65jaPsUKUo/giphy.gif",
+                },
+            ]
+        },
+        "member_join_channel_config": {
+            # public-channel-pookie-test
+            "C034BNA1HTP": {
+                "reactions": [
+                    {
+                        "type": "dm",
+                        "template": "*Welcome to {community} {user}!*\n\n"
+                        "Feel free to introduce yourself in {intro_channel} with the template below if you'd like.\n\n\n"
+                        ":wave: Who are you & What you are working on?\n"
+                        ":round_pushpin: Where are you based + timezone?\n"
+                        ":partying_face: One fun fact about you!\n"
+                        ":raised_hands: What got you excited to join the community?"
+                        "\n\n\n"
+                        "*About me*\n"
+                        "I'm a bot created by {community_manager} the community architect at {community}.\n"
+                        "Don't hesitate to reach out if you have any questions or need help with anything here!",
+                        "image_attachment": "https://media.giphy.com/media/xsE65jaPsUKUo/giphy.gif",
+                    },
+                ]
+            }
+        },
+    },
+}
+
+
+def get_slack_server_config(payload):
+    team = payload.get("team", payload.get("team_id"))
+    if not team:
+        team = payload.get("user", {}).get("team_id")
+    return SERVER_CONFIG.get(team)
