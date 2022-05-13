@@ -129,7 +129,7 @@ class TestDiscord(TestCase):
         guild_id = 1
         get_groups.return_value = {
             "teams": [
-                {"members": ["1", "2"], "timeslot": "-1"},
+                {"members": ["1", "2", "A"], "timeslot": "-1"},
                 {"members": ["5", "6", "7", "8"], "timeslot": "20"},
                 {"members": ["3", "4", "9", "0"], "timeslot": "24"},
             ],

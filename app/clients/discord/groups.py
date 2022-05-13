@@ -1,3 +1,4 @@
+import itertools
 import urllib
 import arrow
 import random
@@ -219,6 +220,13 @@ async def make_atomic_teams(guild_id, dry_run_channel=None):
     )
     if not groups:
         return
+    all_participants = [t["members"] for t in groups["teams"]]
+    all_participants = set(itertools.chain(*all_participants))
+    unknown_participants = all_participants - set([str(p.id) for p in participants])
+    extra_participants = [
+        client.get_user(x) for x in unknown_participants if client.get_user(x)
+    ]
+    participants = participants + extra_participants
     group_to_meet_time = groups.get("timeslots", {})
     meet_time_tz = groups.get("tz", "America/New_York")
     member_id_to_member = {str(x.id): x for x in participants}
@@ -226,7 +234,11 @@ async def make_atomic_teams(guild_id, dry_run_channel=None):
         [
             f"Team {idx} ({group_to_meet_time.get(team['timeslot'], 'unknown')}) : "
             + ", ".join(
-                [member_id_to_member[mid].display_name for mid in team["members"]]
+                [
+                    member_id_to_member[mid].display_name
+                    for mid in team["members"]
+                    if mid in member_id_to_member
+                ]
             )
             for idx, team in enumerate(groups.get("teams"))
         ]
@@ -255,6 +267,8 @@ async def make_atomic_teams(guild_id, dry_run_channel=None):
         voice_channel = await category.create_voice_channel(group_name + "-voice")
         meet_time = group_to_meet_time.get(group["timeslot"], default_meet_time)
         for participant in group["members"]:
+            if participant not in member_id_to_member:
+                continue
             try:
                 await txt_channel.set_permissions(
                     member_id_to_member[participant], overwrite=txt_channel_perm
@@ -264,7 +278,11 @@ async def make_atomic_teams(guild_id, dry_run_channel=None):
                 )
             except Exception as e:
                 logger.exception(e)
-        mentions = " ".join(member_id_to_member[x].mention for x in group["members"])
+        mentions = " ".join(
+            member_id_to_member[x].mention
+            for x in group["members"]
+            if x in member_id_to_member
+        )
         msg_header = (
             f"Welcome {mentions} to your Atomic Team for the next 4 weeks. To get started: \n\n"
             "1. Introduce yourself!\n-What are you working on these days?\n-What could you use some help with?"
