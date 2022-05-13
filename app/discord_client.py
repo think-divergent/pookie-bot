@@ -1,3 +1,4 @@
+import json
 import time
 import pytz
 import asyncio
@@ -234,6 +235,39 @@ async def on_message(message):
     # create coworking sessions
     if f"{POOKIE_USER_ID}> create session" in message.content:
         await make_on_demand_group(message.guild, message.mentions)
+        return
+    if f"{POOKIE_USER_ID}> generate server config" in message.content:
+        guild = message.guild
+        config = {
+            "alliance_slug": "############",
+            "default_atomic_team_time": {
+                "date": 3,
+                "hour": 14,
+                "minute": 30,
+            },
+        }
+        for channel in guild.channels:
+            if channel.name.lower() == "coworking":
+                config["coworking_category"] = channel.id
+            elif channel.name.lower() == "atomic teams":
+                config["atomic_team_category"] = channel.id
+            elif channel.name.lower() == "archived atomic teams":
+                config["archived_atomic_team_category"] = channel.id
+            elif channel.name.lower() == "onboarding":
+                config["onboarding_category"] = channel.id
+            elif channel.name.lower() == "start-here":
+                config["atomic_team_signup_channel_id"] = channel.id
+                signup_message = None
+                for msg in await channel.history(limit=200).flatten():
+                    if "atomic teams" in msg.content.lower():
+                        signup_message = msg
+                if not signup_message:
+                    signup_message = await channel.send(
+                        f"Welcome to {guild.name}. \nReact below to sign up for Atomic Teams."
+                    )
+                    await signup_message.add_reaction(EMOJI_CHECK_MARK)
+                config["atomic_team_signup_msg_id"] = signup_message.id
+        await message.channel.send(json.dumps(config, indent=4, sort_keys=True))
         return
     if f"{POOKIE_USER_ID}> create coworking session" in message.content:
         await make_on_demand_group(message.guild, message.mentions)
