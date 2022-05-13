@@ -283,6 +283,11 @@ async def on_message(message):
         await make_atomic_teams(message.guild.id)
         print("Created Groups")
         return
+    if f"{POOKIE_USER_ID}> who is " in txt:
+        uid = txt.split(" ")[-1]
+        user = await client.fetch_user(int(uid))
+        await message.channel.send(user.name)
+        return
     if f"{POOKIE_USER_ID}> delete atomic teams" in txt:
         if not message.author.guild_permissions.administrator:
             return

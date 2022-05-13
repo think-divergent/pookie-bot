@@ -43,13 +43,17 @@ def get_connect_account_token(user):
 
 
 def get_atomic_team_groups_for_participants(guild_id, participant_ids):
+    server_config = get_discord_server_config(guild_id)
+    payload = {
+        "platform": "discord",
+        "server_id": str(guild_id),
+        "participant_ids": [str(pid) for pid in participant_ids],
+    }
+    if server_config and server_config.get("alliance_slug"):
+        payload["alliance_slug"] = server_config.get("alliance_slug")
     res = requests.post(
         f"{COWORKING_SERVER_URL}/internal/atomic-team-groups/",
-        json={
-            "platform": "discord",
-            "server_id": str(guild_id),
-            "participant_ids": [str(pid) for pid in participant_ids],
-        },
+        json=payload,
     )
     if not res.ok:
         return None
