@@ -192,7 +192,7 @@ async def delete_archived_atomic_teams(guild_id):
         await channel.delete()
 
 
-async def make_atomic_teams(guild_id, dry_run_channel=None):
+async def make_atomic_teams(guild_id, dry_run_channel=None, guild=None):
     """create groups"""
     print("Creating groups...")
     guild_config = get_discord_server_config(guild_id)
@@ -223,10 +223,13 @@ async def make_atomic_teams(guild_id, dry_run_channel=None):
     all_participants = [t["members"] for t in groups["teams"]]
     all_participants = set(itertools.chain(*all_participants))
     unknown_participants = all_participants - set([str(p.id) for p in participants])
-    extra_participants = [
-        client.get_user(x) for x in unknown_participants if client.get_user(x)
-    ]
-    participants = participants + extra_participants
+    if guild:
+        extra_participants = [
+            guild.get_member(int(x))
+            for x in unknown_participants
+            if guild.get_member(int(x))
+        ]
+        participants = participants + extra_participants
     group_to_meet_time = groups.get("timeslots", {})
     meet_time_tz = groups.get("tz", "America/New_York")
     member_id_to_member = {str(x.id): x for x in participants}
@@ -285,8 +288,8 @@ async def make_atomic_teams(guild_id, dry_run_channel=None):
         )
         msg_header = (
             f"Welcome {mentions} to your Atomic Team for the next 4 weeks. To get started: \n\n"
-            "1. Introduce yourself!\n-What are you working on these days?\n-What could you use some help with?"
-            "\nWhat do you enjoy helping others with?\n\n"
+            "1. Introduce yourself!\n- What are you working on these days?\n- What do you love about what you do?\n- What could you use some help with?"
+            "\n- What do you enjoy helping others with?\n🎁 Mystery prize for the first person to make the intro!\n\n"
         )
         msg_body = (
             "2. Since you haven't picked your perferred weekly meet time (https://discord.com/channels/742405250731999273/811024435330678784/871734658931511367), make an appointment to meet some time during the first week - get to know each other, determine how you best communicate with everyone in your team, and how often you want to check in (be sure to check in at least once a week).\n\n"

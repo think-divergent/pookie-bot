@@ -276,11 +276,13 @@ async def on_message(message):
         await delete_on_demand_group(message.guild.id, message.channel)
         return
     if txt == "test_groups" and message.guild.id == 699390284416417842:
-        await make_atomic_teams(message.guild.id, dry_run_channel=message.channel)
+        await make_atomic_teams(
+            message.guild.id, dry_run_channel=message.channel, guild=message.guild
+        )
         return
     if f"{POOKIE_USER_ID}> create atomic teams" in txt:
         print("Creating Groups")
-        await make_atomic_teams(message.guild.id)
+        await make_atomic_teams(message.guild.id, guild=message.guild)
         print("Created Groups")
         return
     if f"{POOKIE_USER_ID}> who is " in txt:
@@ -299,7 +301,9 @@ async def on_message(message):
         if message.author.id != STEVE_ID:
             return
         print("Creating Groups")
-        await make_atomic_teams(message.guild.id, dry_run_channel=message.channel)
+        await make_atomic_teams(
+            message.guild.id, dry_run_channel=message.channel, guild=message.guild
+        )
         print("Created Groups")
         return
     for prompt, responses in SIMPLE_RESPONSES.items():
