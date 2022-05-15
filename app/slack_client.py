@@ -330,7 +330,7 @@ def command(ack, payload, body, respond):
     token = get_connect_account_token(payload)
     if not token:
         return respond("Something went wrong...Plaese try again later.")
-    url = f"https://ThinkDivergent.com/@{slug}/atomic-teams/availability/{token}?v=2"
+    url = f"https://ThinkDivergent.com/a/{slug}/atomic-teams/availability/{token}?v=2"
     server_name = server_config["community_name"]
     respond(
         {

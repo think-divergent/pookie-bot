@@ -155,7 +155,7 @@ async def on_raw_reaction_add(reaction):
     # new member signed up for atomic team
     token = get_connect_account_token(reaction.member)
     slug = guild_config["alliance_slug"]
-    url = f"https://thinkdivergent.com/@{slug}/atomic-teams/availability/{token}"
+    url = f"https://thinkdivergent.com/a/{slug}/atomic-teams/availability/{token}"
     await reaction.member.send(
         f"Welcome to Atomic Teams at {guild.name.capitalize()}!\nSet your availability for a weekly meet up with your team with the link below\n{url}",
         embed=discord.Embed(
@@ -344,7 +344,7 @@ async def slash_update_availability(ctx: SlashContext):
     # new member signed up for atomic team
     token = get_connect_account_token(ctx.author)
     slug = guild_config["alliance_slug"]
-    url = f"https://thinkdivergent.com/@{slug}/atomic-teams/availability/{token}"
+    url = f"https://thinkdivergent.com/a/{slug}/atomic-teams/availability/{token}"
     embed = discord.Embed(
         title=f"Set availability for Atomic Teams at {guild.name.capitalize()}",
         description="Set and update your availability to meet weekly with your atomic team.",
