@@ -136,7 +136,7 @@ async def make_onboarding_group(guild, members):
         view_channel=True,
         **{key: value for key, value in discord.Permissions.text() if value},
     )
-    group_name = f"Hello-{members[0]}"
+    group_name = f"👋{members[0].display_name}"
     category = client.get_channel(cat_id)
     private_channel_perm = {
         guild.default_role: discord.PermissionOverwrite(read_messages=False),
@@ -152,7 +152,7 @@ async def make_onboarding_group(guild, members):
     msg = (
         f"Welcome to the {guild.name} community {members[0].mention}!\n\n"
         f"Meet your onboarding buddy {members[1].mention}!\n"
-        f"Feel free to ask them any questions you might have about the community:\n"
+        f"Feel free to ask them any questions you might have about the community,\n"
         f"what we have going on, how you can contribute, and etc. \n\n"
     )
     if guild_config and guild_config.get("onboarding_challenge"):
