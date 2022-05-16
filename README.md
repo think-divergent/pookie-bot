@@ -16,9 +16,14 @@ under the Server Side Public License (SSPL) v1 used by Mongo DB and Elastic Sear
 # Invite Pookie to Your Server
 # https://discord.com/oauth2/authorize?client_id=795343874049703986&scope=bot%20applications.commands&permissions=8
 https://discord.com/api/oauth2/authorize?client_id=795343874049703986&permissions=1506209426679&scope=bot%20applications.commands
+# for demo purposes add as admin
+https://discord.com/api/oauth2/authorize?client_id=795343874049703986&permissions=8&scope=bot%20applications.commands
+
 # Invite DevPookie to Your Server
 # https://discord.com/oauth2/authorize?client_id=817371651653632020&scope=bot%20applications.commands&permissions=8
 https://discord.com/api/oauth2/authorize?client_id=817371651653632020&permissions=1506209426679&scope=bot%20applications.commands
+# for demo purposes add as admin
+https://discord.com/api/oauth2/authorize?client_id=817371651653632020&permissions=8&scope=bot%20applications.commands
 
 # Development Notes
 ## Add new slack events
