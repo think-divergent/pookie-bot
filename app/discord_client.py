@@ -168,11 +168,12 @@ async def on_raw_reaction_add(reaction):
 
 
 async def get_random_topic_for_channel(channel):
-    messages = [m.content for m in await channel.history(limit=300).flatten()]
-    while True:
-        random_topic = random.choice(daily_topics)
-        if random_topic not in messages:
-            return random_topic
+    messages = set([m.content for m in await channel.history(limit=90).flatten()])
+    new_topics = [x for x in daily_topics if x not in messages]
+    if new_topics:
+        return random.choice(new_topics)
+    else:
+        return random.choice(daily_topics)
 
 
 @client.event
