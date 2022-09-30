@@ -167,6 +167,14 @@ async def on_raw_reaction_add(reaction):
     )
 
 
+async def get_random_topic_for_channel(channel):
+    messages = [m.content for m in await channel.history(limit=300).flatten()]
+    while True:
+        random_topic = random.choice(daily_topics)
+        if random_topic not in messages:
+            return random_topic
+
+
 @client.event
 async def on_message(message):
     txt = message.content.lower()
@@ -290,6 +298,10 @@ async def on_message(message):
         user = await client.fetch_user(int(uid))
         await message.channel.send(user.name)
         return
+    if f"{POOKIE_USER_ID}> random topic" in txt:
+        random_topic = await get_random_topic_for_channel(message.channel)
+        await message.channel.send(random_topic)
+        return
     if f"{POOKIE_USER_ID}> delete atomic teams" in txt:
         if not message.author.guild_permissions.administrator:
             return
@@ -379,11 +391,5 @@ async def hourly_tasks():
     if td_guild:
         for channel in td_guild.channels:
             if channel.id == 951101588729126993:
-                messages = [
-                    m.content for m in await channel.history(limit=300).flatten()
-                ]
-                while True:
-                    random_topic = random.choice(daily_topics)
-                    if random_topic not in messages:
-                        break
+                random_topic = await get_random_topic_for_channel(channel)
                 await channel.send(random_topic)
