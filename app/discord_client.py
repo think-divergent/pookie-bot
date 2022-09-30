@@ -375,13 +375,15 @@ async def hourly_tasks():
     shared_data["last_random_topic"] = now
     td_guild = client.get_guild(THINK_DIVERGENT_GUILD)
     random_topic = random.choice(daily_topics)
-       
+
     if td_guild:
         for channel in td_guild.channels:
             if channel.id == 951101588729126993:
-                 messages = await channel.history(limit=300).flatten()
-                 while True:
+                messages = [
+                    m.content for m in await channel.history(limit=300).flatten()
+                ]
+                while True:
                     random_topic = random.choice(daily_topics)
                     if random_topic not in messages:
                         break
-                 await channel.send(random_topic)
+                await channel.send(random_topic)
