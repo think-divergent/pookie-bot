@@ -169,7 +169,7 @@ async def on_raw_reaction_add(reaction):
 
 async def get_random_topic_for_channel(channel):
     messages = set([m.content for m in await channel.history(limit=90).flatten()])
-    new_topics = [x for x in daily_topics if x not in messages]
+    new_topics = [x for x in daily_topics if x.strip() not in messages]
     if new_topics:
         return random.choice(new_topics)
     else:
