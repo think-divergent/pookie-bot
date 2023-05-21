@@ -19,8 +19,10 @@ logger.setLevel(logging.DEBUG)
 COWORKING_SERVER_URL = os.environ.get("COWORKING_SERVER_URL", "http://localhost:5000")
 
 
-def get_new_session_link():
-    res = requests.post(f"{COWORKING_SERVER_URL}/internal/start-coworking-session/")
+def get_new_session_link(slug=None):
+    res = requests.post(f"{COWORKING_SERVER_URL}/internal/start-coworking-session/", json={
+        'slug': slug
+    })
     if not res.ok:
         return None
     return res.json().get("url", None)
@@ -109,9 +111,13 @@ async def make_on_demand_group(guild, members, duration=30):
     mentions = " ".join([x.mention for x in members if x.id != POOKIE_USER_ID])
     start_time = round(datetime.datetime.now().timestamp())
     session_id = hashlib.md5(f"discord-{guild_id}".encode("ascii")).hexdigest()
+    slug = guild_id.get('alliance_slug', None)
     # genreate a fallback url
-    url = f"https://thinkdivergent.io/join-coworking/{session_id}-{start_time}-{duration}/\n"
-    new_session_link = get_new_session_link()
+    if slug:
+        url = f"https://thinkdivergent.io/join-coworking/{slug}/{session_id}-{start_time}-{duration}/\n"
+    else:
+        url = f"https://thinkdivergent.io/join-coworking/{session_id}-{start_time}-{duration}/\n"
+    new_session_link = get_new_session_link(slug=slug)
     # if we can get a new session link use that session link
     if new_session_link:
         url = f"https://thinkdivergent.com{new_session_link}"

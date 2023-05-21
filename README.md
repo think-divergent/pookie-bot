@@ -13,6 +13,9 @@ We want to make Pookie as assessible as possible so we made the source public.
 All versions released, including patch fixes for prior versions, are published
 under the Server Side Public License (SSPL) v1 used by Mongo DB and Elastic Search. See LICENCE files for details.
 
+# Discord
+Start from scratch? Use the server template: `https://discord.new/jae3dQvg2Vxz`
+
 # Invite Pookie to Your Server
 # https://discord.com/oauth2/authorize?client_id=795343874049703986&scope=bot%20applications.commands&permissions=8
 https://discord.com/api/oauth2/authorize?client_id=795343874049703986&permissions=1506209426679&scope=bot%20applications.commands

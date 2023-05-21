@@ -154,7 +154,7 @@ async def on_raw_reaction_add(reaction):
         return
     # new member signed up for atomic team
     token = get_connect_account_token(reaction.member)
-    slug = guild_config["alliance_slug"]
+    slug = guild_config["alliance_slug"].replace('@', '')
     url = f"https://thinkdivergent.com/a/{slug}/atomic-teams/availability/{token}"
     await reaction.member.send(
         f"Welcome to Atomic Teams at {guild.name.capitalize()}!\nSet your availability for a weekly meet up with your team with the link below\n{url}",
@@ -249,6 +249,7 @@ async def on_message(message):
         guild = message.guild
         config = {
             "alliance_slug": "############",
+            "collide_notif_webhook": "https://....",
             "default_atomic_team_time": {
                 "date": 3,
                 "hour": 14,
