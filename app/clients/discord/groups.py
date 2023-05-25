@@ -111,7 +111,7 @@ async def make_on_demand_group(guild, members, duration=30):
     mentions = " ".join([x.mention for x in members if x.id != POOKIE_USER_ID])
     start_time = round(datetime.datetime.now().timestamp())
     session_id = hashlib.md5(f"discord-{guild_id}".encode("ascii")).hexdigest()
-    slug = guild_id.get('alliance_slug', None)
+    slug = guild_config.get('alliance_slug', None)
     # genreate a fallback url
     if slug:
         url = f"https://thinkdivergent.io/join-coworking/{slug}/{session_id}-{start_time}-{duration}/\n"
