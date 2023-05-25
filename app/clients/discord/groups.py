@@ -114,7 +114,8 @@ async def make_on_demand_group(guild, members, duration=30):
     slug = guild_config.get('alliance_slug', None)
     # genreate a fallback url
     if slug:
-        url = f"https://thinkdivergent.io/join-coworking/{slug}/{session_id}-{start_time}-{duration}/\n"
+        slug = slug.replace('@', '')
+        url = f"https://thinkdivergent.io/join-coworking/@{slug}/{session_id}-{start_time}-{duration}/\n"
     else:
         url = f"https://thinkdivergent.io/join-coworking/{session_id}-{start_time}-{duration}/\n"
     new_session_link = get_new_session_link(slug=slug)
