@@ -242,18 +242,29 @@ def _perform_reactions(user, client, server_config, reactions, say):
             ]
         else:
             blocks = None
-        if reaction.get("type") == "say":
+
+        react_type =reaction.get("type", None)
+        if react_type == "say":
             logger.debug("saying: " + formatted_msg)
-            if blocks:
+           if blocks:
                 say(blocks=blocks, text=formatted_msg)
             else:
                 say(formatted_msg)
-        elif reaction.get("type") == "dm":
+        elif react_type == "dm":
             logger.debug("dming:" + formatted_msg)
             if blocks:
                 client.chat_postMessage(channel=user, text=formatted_msg, blocks=blocks)
             else:
                 client.chat_postMessage(channel=user, text=formatted_msg)
+        else if community_manager_id:
+            client.chat_postMessage(channel=community_manager_id, text=f"Invalid react_type {react_type}")
+        else:
+            return
+        if community_manager_id:
+            client.chat_postMessage(
+                channel=community_manager_id,
+                text=f"{react_type}: "+ formatted_msg, blocks=blocks
+            )
 
 
 @app.event("team_join")
