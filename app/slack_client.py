@@ -246,12 +246,12 @@ def _perform_reactions(user, client, server_config, reactions, say):
         react_type =reaction.get("type", None)
         if react_type == "say":
             logger.debug("saying: " + formatted_msg)
-           if blocks:
+            if blocks:
                 say(blocks=blocks, text=formatted_msg)
             else:
                 say(formatted_msg)
-        elif react_type == "dm":
-            logger.debug("dming:" + formatted_msg)
+            elif react_type == "dm":
+                logger.debug("dming:" + formatted_msg)
             if blocks:
                 client.chat_postMessage(channel=user, text=formatted_msg, blocks=blocks)
             else:
